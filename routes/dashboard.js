@@ -1,0 +1,111 @@
+const express = require('express');
+const pool = require('../database');
+const router = express.Router();
+
+// GET /api/me/today
+// Returns a unified dashboard of all data for today
+router.get('/today', async (req, res) => {
+  try {
+    // Get today's commits
+    const commitsResult = await pool.query(
+      `SELECT COUNT(*) as count, 
+              STRING_AGG(message, ', ') as messages
+       FROM commits 
+       WHERE DATE(created_at) = CURRENT_DATE`
+    );
+
+    // Get today's sleep data
+    const sleepResult = await pool.query(
+      `SELECT hours_slept, quality, source 
+       FROM sleep 
+       WHERE DATE(date) = CURRENT_DATE`
+    );
+
+    // Get today's screen time data
+    const screenTimeResult = await pool.query(
+      `SELECT total_minutes, work_minutes, social_minutes, entertainment_minutes, source 
+       FROM screen_time 
+       WHERE DATE(date) = CURRENT_DATE`
+    );
+
+    // Build the unified response
+    const dashboard = {
+      success: true,
+      date: new Date().toLocaleString('en-CA', { timeZone: 'Asia/Kathmandu' }).split(' ')[0],
+      summary: {
+        commits: {
+          count: parseInt(commitsResult.rows[0].count) || 0,
+          messages: commitsResult.rows[0].messages || "No commits today"
+        },
+        sleep: sleepResult.rows[0] || {
+          hours_slept: null,
+          quality: null,
+          source: "Not tracked"
+        },
+        screenTime: screenTimeResult.rows[0] || {
+          total_minutes: null,
+          work_minutes: null,
+          social_minutes: null,
+          entertainment_minutes: null,
+          source: "Not tracked"
+        }
+      },
+      // Why this summary?
+      // It gives a quick overview of your day at a glance
+      // Useful for dashboards, mobile apps, etc
+      dailySummary: {
+        productivity: calculateProductivity(
+          parseInt(commitsResult.rows[0].count) || 0,
+          screenTimeResult.rows[0]?.work_minutes || 0
+        ),
+        wellbeing: calculateWellbeing(
+          sleepResult.rows[0]?.hours_slept || 0,
+          sleepResult.rows[0]?.quality || 0
+        )
+      }
+    };
+
+    res.json(dashboard);
+  } catch (error) {
+    console.error('Error fetching dashboard:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to fetch dashboard data' 
+    });
+  }
+});
+
+// Helper function to calculate productivity score
+// Why? To give a simple score based on commits and work time
+function calculateProductivity(commits, workMinutes) {
+  let score = 0;
+  
+  // Commits contribute to score
+  if (commits > 0) score += 30;
+  if (commits > 2) score += 20;
+  if (commits > 5) score += 20;
+  
+  // Work screen time contributes
+  if (workMinutes > 120) score += 30;
+  if (workMinutes > 240) score += 20;
+  
+  return Math.min(100, score); // Cap at 100
+}
+
+// Helper function to calculate wellbeing score
+// Why? To give insight into health based on sleep
+function calculateWellbeing(hourSlept, quality) {
+  let score = 0;
+  
+  // Sleep hours
+  if (hourSlept >= 7 && hourSlept <= 9) score += 50;
+  else if (hourSlept >= 6 && hourSlept < 10) score += 30;
+  
+  // Sleep quality
+  if (quality >= 0.8) score += 50;
+  else if (quality >= 0.6) score += 30;
+  
+  return Math.min(100, score); // Cap at 100
+}
+
+module.exports = router;
