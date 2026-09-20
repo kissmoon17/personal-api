@@ -272,17 +272,18 @@
         }
 
         function renderDashboard(data) {
-            const today = data;
-            const commitsToday = data.commits ? data.commits.length : 0;
-            const sleepHours = today.sleep ? today.sleep.hours_slept : 0;
-            const screenTotal = today.screen_time ? today.screen_time.total_minutes : 0;
-            const sleepQuality = today.sleep ? today.sleep.quality : 0;
+            const summary = data.summary;
 
-            const workMinutes = today.screen_time ? today.screen_time.work_minutes : 0;
-            const socialMinutes = today.screen_time ? today.screen_time.social_minutes : 0;
-            const entertainmentMinutes = today.screen_time ? today.screen_time.entertainment_minutes : 0;
+            const commitsToday = summary.commits.count || 0;
+            const sleepHours = summary.sleep.hours_slept || 0;
+            const screenTotal = summary.screenTime.total_minutes || 0;
+            const sleepQuality = summary.sleep.quality || 0;
 
-            const productivityScore = Math.round((commitsToday * 5 + workMinutes * 0.1) / 10);
+            const workMinutes = summary.screenTime.work_minutes || 0;
+            const socialMinutes = summary.screenTime.social_minutes || 0;
+            const entertainmentMinutes = summary.screenTime.entertainment_minutes || 0;
+
+            const productivityScore = data.dailySummary.productivity || 0;
 
             document.getElementById('commits-count').textContent = commitsToday;
             document.getElementById('sleep-hours').textContent = sleepHours.toFixed(1);
@@ -336,11 +337,11 @@
 
             // Commits List
             const commitsList = document.getElementById('commits-list');
-            if (data.commits && data.commits.length > 0) {
-                  commitsList.innerHTML = data.commits.map(c => `
+            if (summary.commits.messages) {
+                const messages = summary.commits.messages.split(', ');
+                commitsList.innerHTML = messages.map(msg => `
                     <div class="commit">
-                        <div class="commit-msg">${escapeHtml(c.message)}</div>
-                        <div class="commit-author">by ${escapeHtml(c.author || 'Unknown')}</div>
+                        <div class="commit-msg">${escapeHtml(msg)}</div>
                     </div>
                 `).join('');
             } else {
