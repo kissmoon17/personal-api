@@ -13,7 +13,7 @@ app.use(cors());
 app.use(express.static(__dirname));
 
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/dashboard.html');
+  res.sendFile(__dirname + '/public/index.html');
 });
 // Middleware: parse JSON from requests
 // Why? If someone sends JSON data, we need to read it
