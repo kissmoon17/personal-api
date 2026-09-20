@@ -7,6 +7,13 @@ require('dotenv').config();
 
 const app = express();
 
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  next();
+});
+console.log('CORS headers set');
 // Middleware: parse JSON from requests
 // Why? If someone sends JSON data, we need to read it
 app.use(express.json());
