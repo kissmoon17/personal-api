@@ -272,7 +272,7 @@
         }
 
         function renderDashboard(data) {
-            const today = data.today;
+            const today = data;
             const commitsToday = today.commits ? today.commits.length : 0;
             const sleepHours = today.sleep ? today.sleep.hours_slept : 0;
             const screenTotal = today.screen_time ? today.screen_time.total_minutes : 0;
