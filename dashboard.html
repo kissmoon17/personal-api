@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Life Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #60a5fa, #34d399);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: #94a3b8;
+            font-size: 1rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #94a3b8;
+        }
+
+        .error {
+            background: #7f1d1d;
+            border: 1px solid #dc2626;
+            color: #fecaca;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            display: none;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .metric:hover {
+            background: rgba(30, 41, 59, 1);
+            border-color: #475569;
+            transform: translateY(-2px);
+        }
+
+        .metric-label {
+            font-size: 0.875rem;
+            color: #94a3b8;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #60a5fa;
+        }
+
+        .charts {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-card {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .chart-card h3 {
+            font-size: 1.125rem;
+            margin-bottom: 1rem;
+            color: #e2e8f0;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 250px;
+        }
+
+        .commits-card {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .commits-card h3 {
+            font-size: 1.125rem;
+            margin-bottom: 1rem;
+            color: #e2e8f0;
+        }
+
+        .commit {
+            padding: 1rem;
+            background: rgba(15, 23, 42, 0.5);
+            border-left: 3px solid #60a5fa;
+            border-radius: 4px;
+            margin-bottom: 0.75rem;
+        }
+
+        .commit-msg {
+            font-weight: 500;
+            color: #e2e8f0;
+            font-size: 0.95rem;
+        }
+
+        .commit-author {
+            color: #94a3b8;
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 2rem;
+            padding: 1rem;
+            color: #64748b;
+            font-size: 0.875rem;
+            border-top: 1px solid #334155;
+        }
+
+        .api-status {
+            background: #1e3a1f;
+            border: 1px solid #22c55e;
+            color: #86efac;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.875rem;
+            }
+
+            .metrics {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .charts {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 Personal Life Dashboard</h1>
+            <p class="subtitle">Your aggregated life metrics in real-time</p>
+        </header>
+
+        <div id="status" class="api-status" style="display: none;"></div>
+        <div id="error" class="error"></div>
+
+        <div id="loading" class="loading">
+            <p>Loading your data...</p>
+        </div>
+
+        <div id="dashboard" style="display: none;">
+            <div class="metrics">
+                <div class="metric">
+                    <div class="metric-label">📝 Commits Today</div>
+                    <div class="metric-value" id="commits-count">0</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">😴 Sleep Hours</div>
+                    <div class="metric-value" id="sleep-hours">0</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">⏱️ Screen Time</div>
+                    <div class="metric-value" id="screen-total">0h</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">⚡ Productivity</div>
+                    <div class="metric-value" id="productivity-score">0%</div>
+                </div>
+            </div>
+
+            <div class="charts">
+                <div class="chart-card">
+                    <h3>📊 Screen Time Breakdown</h3>
+                    <div class="chart-container">
+                        <canvas id="screenChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <h3>💤 Sleep Quality</h3>
+                    <div class="chart-container">
+                        <canvas id="qualityChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="commits-card">
+                <h3>🚀 Recent Commits</h3>
+                <div id="commits-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Powered by Personal API • Data updates every hour</p>
+    </div>
+
+    <script>
+        const API_URL = 'https://personal-api-production-aaef.up.railway.app';
+
+        async function loadDashboard() {
+            try {
+                const response = await fetch(`${API_URL}/api/me/today`);
+                if (!response.ok) throw new Error('API error: ' + response.status);
+                
+                const data = await response.json();
+                if (!data.success) throw new Error(data.error || 'Unknown error');
+                
+                renderDashboard(data);
+                updateStatus('Connected ✓');
+            } catch (error) {
+                showError('Failed to load data: ' + error.message);
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        function renderDashboard(data) {
+            const today = data.today;
+            const commitsToday = today.commits ? today.commits.length : 0;
+            const sleepHours = today.sleep ? today.sleep.hours_slept : 0;
+            const screenTotal = today.screen_time ? today.screen_time.total_minutes : 0;
+            const sleepQuality = today.sleep ? today.sleep.quality : 0;
+
+            const workMinutes = today.screen_time ? today.screen_time.work_minutes : 0;
+            const socialMinutes = today.screen_time ? today.screen_time.social_minutes : 0;
+            const entertainmentMinutes = today.screen_time ? today.screen_time.entertainment_minutes : 0;
+
+            const productivityScore = Math.round((commitsToday * 5 + workMinutes * 0.1) / 10);
+
+            document.getElementById('commits-count').textContent = commitsToday;
+            document.getElementById('sleep-hours').textContent = sleepHours.toFixed(1);
+            document.getElementById('screen-total').textContent = Math.round(screenTotal / 60) + 'h';
+            document.getElementById('productivity-score').textContent = productivityScore + '%';
+
+            // Screen Time Chart
+            new Chart(document.getElementById('screenChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Work', 'Social', 'Entertainment'],
+                    datasets: [{
+                        data: [workMinutes, socialMinutes, entertainmentMinutes],
+                        backgroundColor: ['#3b82f6', '#ef4444', '#8b5cf6'],
+                        borderColor: '#1e293b',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: '#e2e8f0' }
+                        }
+                    }
+                }
+            });
+
+            // Sleep Quality Gauge
+            new Chart(document.getElementById('qualityChart'), {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [sleepQuality, 1 - sleepQuality],
+                        backgroundColor: ['#22c55e', '#475569'],
+                        borderColor: '#1e293b',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { enabled: false }
+                    }
+                }
+            });
+
+            // Commits List
+            const commitsList = document.getElementById('commits-list');
+            if (today.commits && today.commits.length > 0) {
+                commitsList.innerHTML = today.commits.map(c => `
+                    <div class="commit">
+                        <div class="commit-msg">${escapeHtml(c.message)}</div>
+                        <div class="commit-author">by ${escapeHtml(c.author || 'Unknown')}</div>
+                    </div>
+                `).join('');
+            } else {
+                commitsList.innerHTML = '<div class="commit"><div class="commit-msg">No commits today</div></div>';
+            }
+
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+        }
+
+        function showError(msg) {
+            const errorEl = document.getElementById('error');
+            errorEl.textContent = msg;
+            errorEl.style.display = 'block';
+        }
+
+        function updateStatus(msg) {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = msg;
+            statusEl.style.display = 'inline-block';
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        loadDashboard();
+    </script>
+</body>
+</html>
