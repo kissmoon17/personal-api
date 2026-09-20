@@ -273,7 +273,7 @@
 
         function renderDashboard(data) {
             const today = data;
-            const commitsToday = today.commits ? today.commits.length : 0;
+            const commitsToday = data.commits ? data.commits.length : 0;
             const sleepHours = today.sleep ? today.sleep.hours_slept : 0;
             const screenTotal = today.screen_time ? today.screen_time.total_minutes : 0;
             const sleepQuality = today.sleep ? today.sleep.quality : 0;
@@ -336,8 +336,8 @@
 
             // Commits List
             const commitsList = document.getElementById('commits-list');
-            if (today.commits && today.commits.length > 0) {
-                commitsList.innerHTML = today.commits.map(c => `
+            if (data.commits && data.commits.length > 0) {
+                  commitsList.innerHTML = data.commits.map(c => `
                     <div class="commit">
                         <div class="commit-msg">${escapeHtml(c.message)}</div>
                         <div class="commit-author">by ${escapeHtml(c.author || 'Unknown')}</div>
