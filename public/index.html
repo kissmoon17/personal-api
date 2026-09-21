@@ -6,6 +6,24 @@
     <title>Personal Life Dashboard</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
     <style>
+        :root {
+            --bg: #f7f8fb;
+            --surface: #ffffff;
+            --surface-soft: #f8f9fc;
+            --ink: #17315f;
+            --ink-2: #496487;
+            --muted: #8092ad;
+            --line: #e7ebf2;
+            --blue: #4268e8;
+            --blue-soft: #edf1ff;
+            --green: #19b879;
+            --green-soft: #e7f8f1;
+            --purple: #7650e9;
+            --purple-soft: #f1edff;
+            --cyan: #38b9d8;
+            --shadow: 0 8px 28px rgba(30, 54, 91, 0.06);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -13,247 +31,638 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            color: #e2e8f0;
+            font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--ink);
             min-height: 100vh;
-            padding: 2rem 1rem;
         }
 
-        .container {
-            max-width: 1200px;
+        .app {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 248px minmax(0, 1fr);
+        }
+
+        .sidebar {
+            background: #fff;
+            border-right: 1px solid var(--line);
+            padding: 28px 20px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 10px;
+            margin-bottom: 42px;
+        }
+
+        .brand-mark {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: var(--ink);
+            color: #fff;
+            display: grid;
+            place-items: center;
+            font-weight: 700;
+            font-size: 0.92rem;
+            letter-spacing: -0.04em;
+        }
+
+        .brand-name {
+            font-size: 1.18rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .nav {
+            display: grid;
+            gap: 7px;
+        }
+
+        .nav a {
+            color: var(--ink-2);
+            text-decoration: none;
+            padding: 12px 13px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.92rem;
+            transition: background .18s ease, color .18s ease;
+        }
+
+        .nav a:hover {
+            background: var(--surface-soft);
+            color: var(--ink);
+        }
+
+        .nav a.active {
+            background: var(--blue-soft);
+            color: var(--blue);
+            font-weight: 600;
+        }
+
+        .nav-icon {
+            width: 20px;
+            text-align: center;
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+
+        .sidebar-note {
+            margin-top: auto;
+            background: linear-gradient(145deg, #f0efff, #f7f5ff);
+            border-radius: 15px;
+            padding: 20px 18px;
+            color: #5064a2;
+        }
+
+        .sidebar-note .dot {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #e0dcff;
+            color: var(--purple);
+            display: grid;
+            place-items: center;
+            margin-bottom: 14px;
+            font-size: .78rem;
+        }
+
+        .sidebar-note p {
+            font-size: 0.88rem;
+            line-height: 1.55;
+            font-weight: 600;
+        }
+
+        .main {
+            width: 100%;
+            max-width: 1440px;
+            padding: 30px 38px 36px;
             margin: 0 auto;
         }
 
-        header {
-            text-align: center;
-            margin-bottom: 3rem;
+        .topbar {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 24px;
+            margin-bottom: 25px;
+        }
+
+        .eyebrow {
+            color: var(--muted);
+            font-size: .78rem;
+            font-weight: 600;
+            letter-spacing: .07em;
+            text-transform: uppercase;
+            margin-bottom: 5px;
         }
 
         h1 {
-            font-size: 2.5rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            background: linear-gradient(135deg, #60a5fa, #34d399);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            font-size: clamp(1.9rem, 3vw, 2.55rem);
+            line-height: 1.1;
+            letter-spacing: -0.035em;
+            font-weight: 700;
+            color: var(--ink);
         }
 
-        .subtitle {
-            color: #94a3b8;
+        .date {
+            margin-top: 6px;
+            color: #7890b2;
             font-size: 1rem;
         }
 
-        .loading {
-            text-align: center;
-            padding: 2rem;
-            color: #94a3b8;
+        .day-mark {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #dce6f3;
+            display: grid;
+            place-items: center;
+            color: var(--ink);
+            font-weight: 700;
+            font-size: .86rem;
+        }
+
+        .status-row {
+            min-height: 25px;
+            margin-bottom: 8px;
+        }
+
+        .api-status {
+            display: inline-flex !important;
+            align-items: center;
+            color: var(--green);
+            background: var(--green-soft);
+            padding: 7px 11px;
+            border-radius: 999px;
+            font-size: .76rem;
+            font-weight: 600;
+        }
+
+        .api-status::before {
+            content: "";
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--green);
+            margin-right: 7px;
         }
 
         .error {
-            background: #7f1d1d;
-            border: 1px solid #dc2626;
-            color: #fecaca;
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 2rem;
+            background: #fff0ee;
+            border: 1px solid #f0d3ce;
+            color: #8c5148;
+            padding: 11px 14px;
+            border-radius: 10px;
+            margin-bottom: 16px;
             display: none;
+            font-size: .84rem;
+        }
+
+        .loading {
+            padding: 90px 0;
+            text-align: center;
+            color: var(--muted);
+            font-size: .9rem;
         }
 
         .metrics {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 18px;
+            margin-bottom: 24px;
         }
 
         .metric {
-            background: rgba(30, 41, 59, 0.8);
-            border: 1px solid #334155;
-            border-radius: 12px;
-            padding: 1.5rem;
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
+            min-height: 178px;
+            background: var(--surface);
+            border: 1px solid #edf0f5;
+            border-radius: 14px;
+            padding: 20px 20px 17px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
         }
 
-        .metric:hover {
-            background: rgba(30, 41, 59, 1);
-            border-color: #475569;
-            transform: translateY(-2px);
+        .metric-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
         }
+
+        .metric-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            font-size: .88rem;
+            font-weight: 800;
+        }
+
+        .metric-icon.green { background: var(--green-soft); color: var(--green); }
+        .metric-icon.blue { background: #e7f6fd; color: #159ed0; }
+        .metric-icon.purple { background: var(--purple-soft); color: var(--purple); }
+        .metric-icon.indigo { background: #e9edff; color: var(--blue); }
 
         .metric-label {
-            font-size: 0.875rem;
-            color: #94a3b8;
-            font-weight: 500;
-            margin-bottom: 0.5rem;
+            color: #557093;
+            font-size: .87rem;
+            font-weight: 600;
+            margin-top: 14px;
         }
 
         .metric-value {
-            font-size: 2rem;
+            color: #142f5e;
+            font-size: 2.05rem;
+            line-height: 1.05;
             font-weight: 700;
-            color: #60a5fa;
+            letter-spacing: -0.045em;
+            margin-top: 7px;
+        }
+
+        .metric-meta {
+            color: #7890b2;
+            font-size: .78rem;
+            margin-top: 11px;
+        }
+
+        .score-ring {
+            --score: 0;
+            width: 76px;
+            height: 76px;
+            border-radius: 50%;
+            background: conic-gradient(var(--purple) calc(var(--score) * 1%), #e6e9ef 0);
+            position: relative;
+            display: grid;
+            place-items: center;
+            flex: 0 0 auto;
+        }
+
+        .score-ring::after {
+            content: "";
+            position: absolute;
+            inset: 7px;
+            border-radius: 50%;
+            background: #fff;
+        }
+
+        .score-ring span {
+            position: relative;
+            z-index: 1;
+            color: var(--ink);
+            font-weight: 700;
+            font-size: .95rem;
         }
 
         .charts {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
+            grid-template-columns: 1.35fr .85fr;
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+
+        .chart-card,
+        .commits-card {
+            background: var(--surface);
+            border: 1px solid #edf0f5;
+            border-radius: 14px;
+            box-shadow: var(--shadow);
         }
 
         .chart-card {
-            background: rgba(30, 41, 59, 0.8);
-            border: 1px solid #334155;
-            border-radius: 12px;
-            padding: 1.5rem;
-            backdrop-filter: blur(10px);
+            min-height: 300px;
+            padding: 19px 22px;
         }
 
         .chart-card h3 {
-            font-size: 1.125rem;
-            margin-bottom: 1rem;
-            color: #e2e8f0;
+            color: var(--ink);
+            font-size: .96rem;
+            font-weight: 700;
+            margin-bottom: 14px;
         }
 
         .chart-container {
             position: relative;
-            height: 250px;
+            height: 235px;
         }
 
         .commits-card {
-            background: rgba(30, 41, 59, 0.8);
-            border: 1px solid #334155;
-            border-radius: 12px;
-            padding: 1.5rem;
-            backdrop-filter: blur(10px);
+            padding: 18px 22px 8px;
         }
 
-        .commits-card h3 {
-            font-size: 1.125rem;
-            margin-bottom: 1rem;
-            color: #e2e8f0;
+        .commits-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--line);
+            padding-bottom: 12px;
+            margin-bottom: 2px;
+        }
+
+        .commits-heading h3 {
+            font-size: .98rem;
+            font-weight: 700;
+        }
+
+        .commits-heading h3::before {
+            content: "</>";
+            display: inline-grid;
+            place-items: center;
+            width: 27px;
+            height: 27px;
+            border-radius: 50%;
+            background: #edf1ff;
+            color: var(--blue);
+            font-size: .62rem;
+            margin-right: 9px;
+            vertical-align: -8px;
+        }
+
+        .commits-heading small {
+            color: var(--blue);
+            font-size: .76rem;
+            font-weight: 600;
         }
 
         .commit {
-            padding: 1rem;
-            background: rgba(15, 23, 42, 0.5);
-            border-left: 3px solid #60a5fa;
-            border-radius: 4px;
-            margin-bottom: 0.75rem;
+            display: grid;
+            grid-template-columns: 120px minmax(0, 1fr);
+            gap: 14px;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #eef1f5;
+        }
+
+        .commit:last-child {
+            border-bottom: 0;
+        }
+
+        .commit::before {
+            content: "";
+            display: none;
         }
 
         .commit-msg {
-            font-weight: 500;
-            color: #e2e8f0;
-            font-size: 0.95rem;
+            color: #607999;
+            font-size: .83rem;
         }
 
         .commit-author {
-            color: #94a3b8;
-            font-size: 0.85rem;
-            margin-top: 0.25rem;
+            color: var(--muted);
+            font-size: .75rem;
+        }
+
+        .commit-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            color: var(--green);
+            font-size: .77rem;
+            font-weight: 600;
+        }
+
+        .commit-status::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
         }
 
         .footer {
-            text-align: center;
-            margin-top: 2rem;
-            padding: 1rem;
-            color: #64748b;
-            font-size: 0.875rem;
-            border-top: 1px solid #334155;
+            padding-top: 17px;
+            color: var(--muted);
+            font-size: .73rem;
+            text-align: right;
         }
 
-        .api-status {
-            background: #1e3a1f;
-            border: 1px solid #22c55e;
-            color: #86efac;
-            padding: 0.75rem 1rem;
-            border-radius: 6px;
-            font-size: 0.875rem;
-            display: inline-block;
-            margin-bottom: 1rem;
-        }
+        @media (max-width: 1050px) {
+            .app {
+                grid-template-columns: 205px minmax(0, 1fr);
+            }
 
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 1.875rem;
+            .main {
+                padding: 28px 24px;
             }
 
             .metrics {
                 grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 760px) {
+            .app {
+                display: block;
+            }
+
+            .sidebar {
+                min-height: auto;
+                border-right: 0;
+                border-bottom: 1px solid var(--line);
+                padding: 14px 16px;
+            }
+
+            .brand {
+                margin-bottom: 12px;
+            }
+
+            .nav {
+                display: flex;
+                overflow-x: auto;
+            }
+
+            .nav a {
+                white-space: nowrap;
+            }
+
+            .sidebar-note {
+                display: none;
+            }
+
+            .main {
+                padding: 24px 16px;
+            }
+
+            .topbar {
+                margin-bottom: 18px;
             }
 
             .charts {
                 grid-template-columns: 1fr;
             }
         }
+
+        @media (max-width: 520px) {
+            .metrics {
+                grid-template-columns: 1fr;
+            }
+
+            .metric {
+                min-height: 150px;
+            }
+
+            .commit {
+                grid-template-columns: 1fr;
+                gap: 3px;
+            }
+
+            .topbar {
+                align-items: center;
+            }
+
+            .day-mark {
+                width: 42px;
+                height: 42px;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>🎯 Personal Life Dashboard</h1>
-            <p class="subtitle">Your aggregated life metrics in real-time</p>
-        </header>
+    <div class="app">
+        <aside class="sidebar">
+            <div>
+                <div class="brand">
+                    <div class="brand-mark">P</div>
+                    <div class="brand-name">Personal API</div>
+                </div>
 
-        <div id="status" class="api-status" style="display: none;"></div>
-        <div id="error" class="error"></div>
-
-        <div id="loading" class="loading">
-            <p>Loading your data...</p>
-        </div>
-
-        <div id="dashboard" style="display: none;">
-            <div class="metrics">
-                <div class="metric">
-                    <div class="metric-label">📝 Commits Today</div>
-                    <div class="metric-value" id="commits-count">0</div>
-                </div>
-                <div class="metric">
-                    <div class="metric-label">😴 Sleep Hours</div>
-                    <div class="metric-value" id="sleep-hours">0</div>
-                </div>
-                <div class="metric">
-                    <div class="metric-label">⏱️ Screen Time</div>
-                    <div class="metric-value" id="screen-total">0h</div>
-                </div>
-                <div class="metric">
-                    <div class="metric-label">⚡ Productivity</div>
-                    <div class="metric-value" id="productivity-score">0%</div>
-                </div>
+                <nav class="nav" aria-label="Dashboard navigation">
+                    <a class="active" href="#overview"><span class="nav-icon">⌂</span>Overview</a>
+                    <a href="#charts"><span class="nav-icon">◌</span>Trends</a>
+                    <a href="#commits"><span class="nav-icon">&lt;/&gt;</span>Activity</a>
+                    <a href="#connection"><span class="nav-icon">●</span>Connection</a>
+                </nav>
             </div>
 
-            <div class="charts">
-                <div class="chart-card">
-                    <h3>📊 Screen Time Breakdown</h3>
-                    <div class="chart-container">
-                        <canvas id="screenChart"></canvas>
+            <div class="sidebar-note">
+                <div class="dot">+</div>
+                <p>Small records add up. This is just a simple place to see the day.</p>
+            </div>
+        </aside>
+
+        <main class="main" id="overview">
+            <header class="topbar">
+                <div>
+                    <div class="eyebrow">Personal dashboard</div>
+                    <h1 id="greeting">Good morning.</h1>
+                    <p class="date" id="today-date"></p>
+                </div>
+                <div class="day-mark" id="day-mark">P</div>
+            </header>
+
+            <div class="status-row" id="connection">
+                <div id="status" class="api-status" style="display: none;"></div>
+            </div>
+
+            <div id="error" class="error"></div>
+
+            <div id="loading" class="loading">
+                <p>Loading today's data...</p>
+            </div>
+
+            <div id="dashboard" style="display: none;">
+                <section class="metrics" aria-label="Today's summary">
+                    <div class="metric">
+                        <div class="metric-top">
+                            <div class="metric-icon green">✓</div>
+                        </div>
+                        <div class="metric-label">Commits today</div>
+                        <div class="metric-value" id="commits-count">0</div>
+                        <div class="metric-meta">Git activity recorded today</div>
                     </div>
-                </div>
 
-                <div class="chart-card">
-                    <h3>💤 Sleep Quality</h3>
-                    <div class="chart-container">
-                        <canvas id="qualityChart"></canvas>
+                    <div class="metric">
+                        <div class="metric-top">
+                            <div class="metric-icon indigo">◐</div>
+                        </div>
+                        <div class="metric-label">Sleep hours</div>
+                        <div class="metric-value" id="sleep-hours">0</div>
+                        <div class="metric-meta">Last night's sleep</div>
                     </div>
-                </div>
+
+                    <div class="metric">
+                        <div class="metric-top">
+                            <div class="metric-icon blue">▯</div>
+                        </div>
+                        <div class="metric-label">Screen time</div>
+                        <div class="metric-value" id="screen-total">0h</div>
+                        <div class="metric-meta">Work, social and entertainment</div>
+                    </div>
+
+                    <div class="metric">
+                        <div class="metric-top">
+                            <div class="metric-icon purple">★</div>
+                            <div class="score-ring" id="score-ring" style="--score: 0;">
+                                <span id="score-ring-value">0</span>
+                            </div>
+                        </div>
+                        <div class="metric-label">Productivity score</div>
+                        <div class="metric-value" id="productivity-score">0%</div>
+                        <div class="metric-meta">Based on today's recorded activity</div>
+                    </div>
+                </section>
+
+                <section class="charts" id="charts">
+                    <div class="chart-card">
+                        <h3>Screen time breakdown</h3>
+                        <div class="chart-container">
+                            <canvas id="screenChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-card">
+                        <h3>Sleep quality</h3>
+                        <div class="chart-container">
+                            <canvas id="qualityChart"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="commits-card" id="commits">
+                    <div class="commits-heading">
+                        <h3>Recent commits</h3>
+                        <small>Today</small>
+                    </div>
+                    <div id="commits-list"></div>
+                </section>
             </div>
 
-            <div class="commits-card">
-                <h3>🚀 Recent Commits</h3>
-                <div id="commits-list"></div>
-            </div>
-        </div>
+            <footer class="footer">
+                <p>Personal API · a quiet record of the day</p>
+            </footer>
+        </main>
     </div>
 
-    <div class="footer">
-        <p>Powered by Personal API • Data updates every hour</p>
-    </div>
-
-    <script>
+<script>
         const API_URL = 'https://personal-api-production-aaef.up.railway.app';
+
+        function setupHeader() {
+            const now = new Date();
+            const hour = now.getHours();
+            const greeting = hour < 12 ? 'Good morning.' : hour < 18 ? 'Good afternoon.' : 'Good evening.';
+            document.getElementById('greeting').textContent = greeting;
+
+            document.getElementById('today-date').textContent = now.toLocaleDateString(undefined, {
+                weekday: 'long',
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric'
+            });
+
+            document.getElementById('day-mark').textContent =
+                now.toLocaleDateString(undefined, { weekday: 'short' }).slice(0, 2);
+        }
+
+        setupHeader();
 
         async function loadDashboard() {
             try {
@@ -272,94 +681,87 @@
         }
 
         function renderDashboard(data) {
-    try {
-        const summary = data.summary;
-        
-        const commitsToday = summary.commits.count || 0;
-        const sleepHours = parseFloat(summary.sleep.hours_slept) || 0;
-        const screenTotal = parseFloat(summary.screenTime.total_minutes) || 0;
-        const sleepQuality = parseFloat(summary.sleep.quality) || 0;
+            const summary = data.summary;
 
-        const workMinutes = parseFloat(summary.screenTime.work_minutes) || 0;
-        const socialMinutes = parseFloat(summary.screenTime.social_minutes) || 0;
-        const entertainmentMinutes = parseFloat(summary.screenTime.entertainment_minutes) || 0;
+            const commitsToday = summary.commits.count || 0;
+            const sleepHours = parseFloat(summary.sleep.hours_slept) || 0;
+            const screenTotal = parseFloat(summary.screenTime.total_minutes) || 0;
+            const sleepQuality = parseFloat(summary.sleep.quality) || 0;
 
-        const productivityScore = data.dailySummary.productivity || 0;
+            const workMinutes = parseFloat(summary.screenTime.work_minutes) || 0;
+            const socialMinutes = parseFloat(summary.screenTime.social_minutes) || 0;
+            const entertainmentMinutes = parseFloat(summary.screenTime.entertainment_minutes) || 0;
+            const productivityScore = data.dailySummary.productivity || 0;
 
-        document.getElementById('commits-count').textContent = commitsToday;
-        document.getElementById('sleep-hours').textContent = sleepHours.toFixed(1);
-        document.getElementById('screen-total').textContent = Math.round(screenTotal / 60) + 'h';
-        document.getElementById('productivity-score').textContent = productivityScore + '%';
+            document.getElementById('commits-count').textContent = commitsToday;
+            document.getElementById('sleep-hours').textContent = parseFloat(sleepHours).toFixed(1);
+            document.getElementById('screen-total').textContent = Math.round(screenTotal / 60) + 'h';
+            document.getElementById('productivity-score').textContent = productivityScore + '%';
+            document.getElementById('score-ring').style.setProperty('--score', Math.max(0, Math.min(100, productivityScore)));
+            document.getElementById('score-ring-value').textContent = productivityScore;
 
-        // Destroy existing charts if they exist
-        if (window.screenChartInstance) window.screenChartInstance.destroy();
-        if (window.qualityChartInstance) window.qualityChartInstance.destroy();
-
-        // Screen Time Chart
-        window.screenChartInstance = new Chart(document.getElementById('screenChart'), {
-            type: 'doughnut',
-            data: {
-                labels: ['Work', 'Social', 'Entertainment'],
-                datasets: [{
-                    data: [workMinutes, socialMinutes, entertainmentMinutes],
-                    backgroundColor: ['#3b82f6', '#ef4444', '#8b5cf6'],
-                    borderColor: '#1e293b',
-                    borderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: { color: '#e2e8f0' }
+            // Screen Time Chart
+            new Chart(document.getElementById('screenChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Work', 'Social', 'Entertainment'],
+                    datasets: [{
+                        data: [workMinutes, socialMinutes, entertainmentMinutes],
+                        backgroundColor: ['#4268e8', '#38b9d8', '#7650e9'],
+                        borderColor: '#ffffff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: '#607999', font: { size: 12 } }
+                        }
                     }
                 }
-            }
-        });
+            });
 
-        // Sleep Quality Gauge
-        window.qualityChartInstance = new Chart(document.getElementById('qualityChart'), {
-            type: 'doughnut',
-            data: {
-                datasets: [{
-                    data: [sleepQuality, 1 - sleepQuality],
-                    backgroundColor: ['#22c55e', '#475569'],
-                    borderColor: '#1e293b',
-                    borderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: { enabled: false }
+            // Sleep Quality Gauge
+            new Chart(document.getElementById('qualityChart'), {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [sleepQuality, 1 - sleepQuality],
+                        backgroundColor: ['#22c55e', '#475569'],
+                        borderColor: '#1e293b',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { enabled: false }
+                    }
                 }
+            });
+
+            // Commits List
+            const commitsList = document.getElementById('commits-list');
+            if (summary.commits.messages) {
+                const messages = summary.commits.messages.split(', ');
+                commitsList.innerHTML = messages.map(msg => `
+                    <div class="commit">
+                        <div class="commit-status">Recorded</div>
+                        <div class="commit-msg">${escapeHtml(msg)}</div>
+                    </div>
+                `).join('');
+            } else {
+                commitsList.innerHTML = '<div class="commit"><div class="commit-msg">No commits today</div></div>';
             }
-        });
 
-        // Commits List
-        const commitsList = document.getElementById('commits-list');
-        if (summary.commits.messages) {
-            const messages = summary.commits.messages.split(', ');
-            commitsList.innerHTML = messages.map(msg => `
-                <div class="commit">
-                    <div class="commit-msg">${escapeHtml(msg)}</div>
-                </div>
-            `).join('');
-        } else {
-            commitsList.innerHTML = '<div class="commit"><div class="commit-msg">No commits today</div></div>';
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
         }
-
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('dashboard').style.display = 'block';
-    } catch (error) {
-        showError('Error rendering dashboard: ' + error.message);
-        document.getElementById('loading').style.display = 'none';
-    }
-}
 
         function showError(msg) {
             const errorEl = document.getElementById('error');
