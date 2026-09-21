@@ -12,60 +12,40 @@ async function syncCommits() {
   try {
     console.log('🔄 Starting sync...');
 
-    // Get all events for the user
-    const eventsResponse = await axios.get(
-      'https://api.github.com/users/kissmoon17/events',
+    // Get commits directly from the personal-api repo
+    const commitsResponse = await axios.get(
+      'https://api.github.com/repos/kissmoon17/personal-api/commits',
       {
         headers: {
           'Authorization': `token ${process.env.GITHUB_TOKEN}`,
           'Accept': 'application/vnd.github.v3+json'
+        },
+        params: {
+          per_page: 100  // Get up to 100 commits
         }
       }
     );
 
-    // Filter for push events
-    const pushEvents = eventsResponse.data.filter(event => 
-      event.type === 'PushEvent'
-    );
+    console.log(`Found ${commitsResponse.data.length} commits`);
 
-    console.log(`Found ${pushEvents.length} push events`);
-
-    // For each push event, get the full commit details
-    for (const event of pushEvents) {
-      const repoOwner = event.repo.name.split('/')[0];
-      const repoName = event.repo.name.split('/')[1];
-      const commitHash = event.payload.head;
-
+    // Save each commit to database
+    for (const commit of commitsResponse.data) {
       try {
-        // Get the full commit details from GitHub
-        const commitResponse = await axios.get(
-          `https://api.github.com/repos/${repoOwner}/${repoName}/commits/${commitHash}`,
-          {
-            headers: {
-              'Authorization': `token ${process.env.GITHUB_TOKEN}`,
-              'Accept': 'application/vnd.github.v3+json'
-            }
-          }
-        );
+        console.log('Inserting commit:', commit.sha, commit.commit.message);
 
-        const commit = commitResponse.data.commit;
-        
-        console.log('Inserting commit:', commitHash, commit.message);
-
-        // Save to database
         await pool.query(
           `INSERT INTO commits (commit_hash, message, author, created_at)
           VALUES ($1, $2, $3, $4)
           ON CONFLICT (commit_hash) DO NOTHING`,
           [
-            commitHash,
-            commit.message,
-            commit.author.name,
-            new Date(commit.author.date)
+            commit.sha,
+            commit.commit.message,
+            commit.commit.author.name,
+            new Date(commit.commit.author.date)
           ]
         );
       } catch (err) {
-        console.error('Error fetching/inserting commit:', err.message);
+        console.error('Error inserting commit:', err.message);
       }
     }
 
@@ -74,7 +54,6 @@ async function syncCommits() {
     console.error('Sync error:', error.message);
   }
 }
-
 // Schedule the sync job
 // What does this mean?
 // Run syncCommits() every day at 2 AM
