@@ -24,6 +24,24 @@
             --shadow: 0 8px 28px rgba(30, 54, 91, 0.06);
         }
 
+        body.dark-mode {
+            --bg: #0f1419;
+            --surface: #1a1f26;
+            --surface-soft: #262d35;
+            --ink: #f0f4f8;
+            --ink-2: #c5cdd5;
+            --muted: #8b95a5;
+            --line: #3a424f;
+            --blue: #58a6ff;
+            --blue-soft: #11284a;
+            --green: #3fb950;
+            --green-soft: #0d3d1e;
+            --purple: #d2a8ff;
+            --purple-soft: #2e1a47;
+            --cyan: #39c5cf;
+            --shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -44,7 +62,7 @@
         }
 
         .sidebar {
-            background: #fff;
+            background: var(--surface);
             border-right: 1px solid var(--line);
             padding: 28px 20px;
             display: flex;
@@ -65,7 +83,7 @@
             height: 42px;
             border-radius: 50%;
             background: var(--ink);
-            color: #fff;
+            color: var(--surface);
             display: grid;
             place-items: center;
             font-weight: 700;
@@ -116,17 +134,17 @@
 
         .sidebar-note {
             margin-top: auto;
-            background: linear-gradient(145deg, #f0efff, #f7f5ff);
+            background: var(--purple-soft);
             border-radius: 15px;
             padding: 20px 18px;
-            color: #5064a2;
+            color: var(--ink);
         }
 
         .sidebar-note .dot {
             width: 28px;
             height: 28px;
             border-radius: 50%;
-            background: #e0dcff;
+            background: var(--surface);
             color: var(--purple);
             display: grid;
             place-items: center;
@@ -155,6 +173,21 @@
             margin-bottom: 25px;
         }
 
+        .theme-toggle {
+            background: var(--surface);
+            color: var(--ink);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: background 0.2s ease;
+        }
+
+        .theme-toggle:hover {
+            background: var(--surface-soft);
+        }
+
         .eyebrow {
             color: var(--muted);
             font-size: .78rem;
@@ -174,7 +207,7 @@
 
         .date {
             margin-top: 6px;
-            color: #7890b2;
+            color: var(--muted);
             font-size: 1rem;
         }
 
@@ -182,7 +215,8 @@
             width: 48px;
             height: 48px;
             border-radius: 50%;
-            background: #dce6f3;
+            background: var(--surface-soft);
+            border: 1px solid var(--line);
             display: grid;
             place-items: center;
             color: var(--ink);
@@ -216,9 +250,9 @@
         }
 
         .error {
-            background: #fff0ee;
-            border: 1px solid #f0d3ce;
-            color: #8c5148;
+            background: rgba(220, 38, 38, 0.1);
+            border: 1px solid rgba(220, 38, 38, 0.3);
+            color: #ef4444;
             padding: 11px 14px;
             border-radius: 10px;
             margin-bottom: 16px;
@@ -243,7 +277,7 @@
         .metric {
             min-height: 178px;
             background: var(--surface);
-            border: 1px solid #edf0f5;
+            border: 1px solid var(--line);
             border-radius: 14px;
             padding: 20px 20px 17px;
             box-shadow: var(--shadow);
@@ -269,19 +303,19 @@
         }
 
         .metric-icon.green { background: var(--green-soft); color: var(--green); }
-        .metric-icon.blue { background: #e7f6fd; color: #159ed0; }
+        .metric-icon.blue { background: var(--blue-soft); color: var(--cyan); }
         .metric-icon.purple { background: var(--purple-soft); color: var(--purple); }
-        .metric-icon.indigo { background: #e9edff; color: var(--blue); }
+        .metric-icon.indigo { background: var(--blue-soft); color: var(--blue); }
 
         .metric-label {
-            color: #557093;
+            color: var(--ink-2);
             font-size: .87rem;
             font-weight: 600;
             margin-top: 14px;
         }
 
         .metric-value {
-            color: #142f5e;
+            color: var(--ink);
             font-size: 2.05rem;
             line-height: 1.05;
             font-weight: 700;
@@ -290,7 +324,7 @@
         }
 
         .metric-meta {
-            color: #7890b2;
+            color: var(--muted);
             font-size: .78rem;
             margin-top: 11px;
         }
@@ -300,7 +334,7 @@
             width: 76px;
             height: 76px;
             border-radius: 50%;
-            background: conic-gradient(var(--purple) calc(var(--score) * 1%), #e6e9ef 0);
+            background: conic-gradient(var(--purple) calc(var(--score) * 1%), var(--surface-soft) 0);
             position: relative;
             display: grid;
             place-items: center;
@@ -312,7 +346,7 @@
             position: absolute;
             inset: 7px;
             border-radius: 50%;
-            background: #fff;
+            background: var(--surface);
         }
 
         .score-ring span {
@@ -333,7 +367,7 @@
         .chart-card,
         .commits-card {
             background: var(--surface);
-            border: 1px solid #edf0f5;
+            border: 1px solid var(--line);
             border-radius: 14px;
             box-shadow: var(--shadow);
         }
@@ -380,7 +414,7 @@
             width: 27px;
             height: 27px;
             border-radius: 50%;
-            background: #edf1ff;
+            background: var(--blue-soft);
             color: var(--blue);
             font-size: .62rem;
             margin-right: 9px;
@@ -399,20 +433,15 @@
             gap: 14px;
             align-items: center;
             padding: 12px 0;
-            border-bottom: 1px solid #eef1f5;
+            border-bottom: 1px solid var(--line);
         }
 
         .commit:last-child {
             border-bottom: 0;
         }
 
-        .commit::before {
-            content: "";
-            display: none;
-        }
-
         .commit-msg {
-            color: #607999;
+            color: var(--ink-2);
             font-size: .83rem;
         }
 
@@ -556,7 +585,10 @@
                     <h1 id="greeting">Good morning.</h1>
                     <p class="date" id="today-date"></p>
                 </div>
-                <div class="day-mark" id="day-mark">P</div>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <button class="theme-toggle" id="theme-toggle" title="Toggle dark mode">🌙</button>
+                    <div class="day-mark" id="day-mark">P</div>
+                </div>
             </header>
 
             <div class="status-row" id="connection">
@@ -642,7 +674,7 @@
         </main>
     </div>
 
-<script>
+    <script>
         const API_URL = 'https://personal-api-production-aaef.up.railway.app';
 
         function setupHeader() {
@@ -663,6 +695,21 @@
         }
 
         setupHeader();
+
+        const themeToggle = document.getElementById('theme-toggle');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+        if (localStorage.getItem('dark-mode') === 'true' || (prefersDark && !localStorage.getItem('dark-mode'))) {
+            document.body.classList.add('dark-mode');
+            themeToggle.textContent = '☀️';
+        }
+
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('dark-mode', isDark);
+            themeToggle.textContent = isDark ? '☀️' : '🌙';
+        });
 
         async function loadDashboard() {
             try {
@@ -700,6 +747,9 @@
             document.getElementById('score-ring').style.setProperty('--score', Math.max(0, Math.min(100, productivityScore)));
             document.getElementById('score-ring-value').textContent = productivityScore;
 
+            const surfaceColor = getComputedStyle(document.body).getPropertyValue('--surface').trim() || '#ffffff';
+            const ink2Color = getComputedStyle(document.body).getPropertyValue('--ink-2').trim() || '#607999';
+
             // Screen Time Chart
             new Chart(document.getElementById('screenChart'), {
                 type: 'doughnut',
@@ -708,7 +758,7 @@
                     datasets: [{
                         data: [workMinutes, socialMinutes, entertainmentMinutes],
                         backgroundColor: ['#4268e8', '#38b9d8', '#7650e9'],
-                        borderColor: '#ffffff',
+                        borderColor: surfaceColor,
                         borderWidth: 2
                     }]
                 },
@@ -718,7 +768,7 @@
                     plugins: {
                         legend: {
                             position: 'bottom',
-                            labels: { color: '#607999', font: { size: 12 } }
+                            labels: { color: ink2Color, font: { size: 12 } }
                         }
                     }
                 }
@@ -730,8 +780,8 @@
                 data: {
                     datasets: [{
                         data: [sleepQuality, 1 - sleepQuality],
-                        backgroundColor: ['#22c55e', '#475569'],
-                        borderColor: '#1e293b',
+                        backgroundColor: ['#19b879', 'rgba(128, 146, 173, 0.2)'],
+                        borderColor: surfaceColor,
                         borderWidth: 2
                     }]
                 },
