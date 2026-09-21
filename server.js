@@ -37,6 +37,10 @@ app.use('/api/me', screenTimeRoute);
 const dashboardRoute = require('./routes/dashboard');
 app.use('/api/me', dashboardRoute);
 
+const manualDataRoute = require('./routes/manual-data');
+app.post('/api/me/sleep', manualDataRoute.addSleep);
+app.post('/api/me/screen-time', manualDataRoute.addScreenTime);
+
 // Health check endpoint
 // Why? This lets us know the server is running
 app.get('/health', (req, res) => {
