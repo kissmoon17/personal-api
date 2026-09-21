@@ -64,6 +64,16 @@ cron.schedule('0 * * * *', () => {
   syncCommits();
 });
 
+app.get('/api/sync', async (req, res) => {
+  try {
+    const { syncCommits } = require('./sync');
+    await syncCommits();
+    res.json({ success: true, message: 'Sync completed' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`✓ Server running on http://localhost:${PORT}`);
