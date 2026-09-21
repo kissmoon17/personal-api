@@ -298,8 +298,16 @@
             border-radius: 50%;
             display: grid;
             place-items: center;
-            font-size: .88rem;
-            font-weight: 800;
+        }
+
+        .metric-icon svg {
+            width: 20px;
+            height: 20px;
+            stroke-width: 2.2;
+            fill: none;
+            stroke: currentColor;
+            stroke-linecap: round;
+            stroke-linejoin: round;
         }
 
         .metric-icon.green { background: var(--green-soft); color: var(--green); }
@@ -605,7 +613,9 @@
                 <section class="metrics" aria-label="Today's summary">
                     <div class="metric">
                         <div class="metric-top">
-                            <div class="metric-icon green">✓</div>
+                            <div class="metric-icon green">
+                                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            </div>
                         </div>
                         <div class="metric-label">Commits today</div>
                         <div class="metric-value" id="commits-count">0</div>
@@ -614,7 +624,9 @@
 
                     <div class="metric">
                         <div class="metric-top">
-                            <div class="metric-icon indigo">◐</div>
+                            <div class="metric-icon indigo">
+                                <svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                            </div>
                         </div>
                         <div class="metric-label">Sleep hours</div>
                         <div class="metric-value" id="sleep-hours">0</div>
@@ -623,7 +635,9 @@
 
                     <div class="metric">
                         <div class="metric-top">
-                            <div class="metric-icon blue">▯</div>
+                            <div class="metric-icon blue">
+                                <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                            </div>
                         </div>
                         <div class="metric-label">Screen time</div>
                         <div class="metric-value" id="screen-total">0h</div>
@@ -632,7 +646,9 @@
 
                     <div class="metric">
                         <div class="metric-top">
-                            <div class="metric-icon purple">★</div>
+                            <div class="metric-icon purple">
+                                <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                            </div>
                             <div class="score-ring" id="score-ring" style="--score: 0;">
                                 <span id="score-ring-value">0</span>
                             </div>
