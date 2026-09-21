@@ -54,6 +54,16 @@ const { syncCommits } = require('./sync');
 // Remove this in production
 syncCommits();
 
+// Run sync immediately when server starts
+syncCommits();
+
+// Setup recurring sync every hour
+const cron = require('node-cron');
+cron.schedule('0 * * * *', () => {
+  console.log('Running scheduled commit sync...');
+  syncCommits();
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`✓ Server running on http://localhost:${PORT}`);
