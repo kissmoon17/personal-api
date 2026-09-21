@@ -272,85 +272,94 @@
         }
 
         function renderDashboard(data) {
-            const summary = data.summary;
+    try {
+        const summary = data.summary;
+        
+        const commitsToday = summary.commits.count || 0;
+        const sleepHours = parseFloat(summary.sleep.hours_slept) || 0;
+        const screenTotal = parseFloat(summary.screenTime.total_minutes) || 0;
+        const sleepQuality = parseFloat(summary.sleep.quality) || 0;
 
-            const commitsToday = summary.commits.count || 0;
-            const sleepHours = parseFloat(summary.sleep.hours_slept) || 0;
-            const screenTotal = parseFloat(summary.screenTime.total_minutes) || 0;y.screenTime.total_minutes || 0;
-            const sleepQuality = summary.sleep.quality || 0;
+        const workMinutes = parseFloat(summary.screenTime.work_minutes) || 0;
+        const socialMinutes = parseFloat(summary.screenTime.social_minutes) || 0;
+        const entertainmentMinutes = parseFloat(summary.screenTime.entertainment_minutes) || 0;
 
-            const workMinutes = summary.screenTime.work_minutes || 0;
-            const socialMinutes = summary.screenTime.social_minutes || 0;
-            const entertainmentMinutes = summary.screenTime.entertainment_minutes || 0;
+        const productivityScore = data.dailySummary.productivity || 0;
 
-            const productivityScore = data.dailySummary.productivity || 0;
+        document.getElementById('commits-count').textContent = commitsToday;
+        document.getElementById('sleep-hours').textContent = sleepHours.toFixed(1);
+        document.getElementById('screen-total').textContent = Math.round(screenTotal / 60) + 'h';
+        document.getElementById('productivity-score').textContent = productivityScore + '%';
 
-            document.getElementById('commits-count').textContent = commitsToday;
-            document.getElementById('sleep-hours').textContent = sleepHours.toFixed(1);
-            document.getElementById('screen-total').textContent = Math.round(screenTotal / 60) + 'h';
-            document.getElementById('productivity-score').textContent = productivityScore + '%';
+        // Destroy existing charts if they exist
+        if (window.screenChartInstance) window.screenChartInstance.destroy();
+        if (window.qualityChartInstance) window.qualityChartInstance.destroy();
 
-            // Screen Time Chart
-            new Chart(document.getElementById('screenChart'), {
-                type: 'doughnut',
-                data: {
-                    labels: ['Work', 'Social', 'Entertainment'],
-                    datasets: [{
-                        data: [workMinutes, socialMinutes, entertainmentMinutes],
-                        backgroundColor: ['#3b82f6', '#ef4444', '#8b5cf6'],
-                        borderColor: '#1e293b',
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: { color: '#e2e8f0' }
-                        }
+        // Screen Time Chart
+        window.screenChartInstance = new Chart(document.getElementById('screenChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Work', 'Social', 'Entertainment'],
+                datasets: [{
+                    data: [workMinutes, socialMinutes, entertainmentMinutes],
+                    backgroundColor: ['#3b82f6', '#ef4444', '#8b5cf6'],
+                    borderColor: '#1e293b',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: '#e2e8f0' }
                     }
                 }
-            });
-
-            // Sleep Quality Gauge
-            new Chart(document.getElementById('qualityChart'), {
-                type: 'doughnut',
-                data: {
-                    datasets: [{
-                        data: [sleepQuality, 1 - sleepQuality],
-                        backgroundColor: ['#22c55e', '#475569'],
-                        borderColor: '#1e293b',
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: { enabled: false }
-                    }
-                }
-            });
-
-            // Commits List
-            const commitsList = document.getElementById('commits-list');
-            if (summary.commits.messages) {
-                const messages = summary.commits.messages.split(', ');
-                commitsList.innerHTML = messages.map(msg => `
-                    <div class="commit">
-                        <div class="commit-msg">${escapeHtml(msg)}</div>
-                    </div>
-                `).join('');
-            } else {
-                commitsList.innerHTML = '<div class="commit"><div class="commit-msg">No commits today</div></div>';
             }
+        });
 
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('dashboard').style.display = 'block';
+        // Sleep Quality Gauge
+        window.qualityChartInstance = new Chart(document.getElementById('qualityChart'), {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [sleepQuality, 1 - sleepQuality],
+                    backgroundColor: ['#22c55e', '#475569'],
+                    borderColor: '#1e293b',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: false }
+                }
+            }
+        });
+
+        // Commits List
+        const commitsList = document.getElementById('commits-list');
+        if (summary.commits.messages) {
+            const messages = summary.commits.messages.split(', ');
+            commitsList.innerHTML = messages.map(msg => `
+                <div class="commit">
+                    <div class="commit-msg">${escapeHtml(msg)}</div>
+                </div>
+            `).join('');
+        } else {
+            commitsList.innerHTML = '<div class="commit"><div class="commit-msg">No commits today</div></div>';
         }
+
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+    } catch (error) {
+        showError('Error rendering dashboard: ' + error.message);
+        document.getElementById('loading').style.display = 'none';
+    }
+}
 
         function showError(msg) {
             const errorEl = document.getElementById('error');
