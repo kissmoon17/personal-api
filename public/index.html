@@ -287,9 +287,8 @@
 
         .metric-top {
             display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 12px;
+            align-items: center;
+            height: 42px;
         }
 
         .metric-icon {
@@ -339,11 +338,13 @@
 
         .score-ring {
             --score: 0;
-            width: 76px;
-            height: 76px;
+            width: 64px;
+            height: 64px;
             border-radius: 50%;
             background: conic-gradient(var(--purple) calc(var(--score) * 1%), var(--surface-soft) 0);
-            position: relative;
+            position: absolute;
+            top: 18px;
+            right: 18px;
             display: grid;
             place-items: center;
             flex: 0 0 auto;
@@ -352,7 +353,7 @@
         .score-ring::after {
             content: "";
             position: absolute;
-            inset: 7px;
+            inset: 6px;
             border-radius: 50%;
             background: var(--surface);
         }
@@ -362,7 +363,7 @@
             z-index: 1;
             color: var(--ink);
             font-weight: 700;
-            font-size: .95rem;
+            font-size: .88rem;
         }
 
         .charts {
