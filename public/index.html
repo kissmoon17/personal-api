@@ -275,8 +275,8 @@
             const summary = data.summary;
 
             const commitsToday = summary.commits.count || 0;
-            const sleepHours = summary.sleep.hours_slept || 0;
-            const screenTotal = summary.screenTime.total_minutes || 0;
+            const sleepHours = parseFloat(summary.sleep.hours_slept) || 0;
+            const screenTotal = parseFloat(summary.screenTime.total_minutes) || 0;y.screenTime.total_minutes || 0;
             const sleepQuality = summary.sleep.quality || 0;
 
             const workMinutes = summary.screenTime.work_minutes || 0;
