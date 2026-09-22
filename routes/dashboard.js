@@ -6,27 +6,27 @@ const router = express.Router();
 // Returns a unified dashboard of all data for today
 router.get('/today', async (req, res) => {
   try {
-    // Get today's commits
-    const commitsResult = await pool.query(
-      `SELECT COUNT(*) as count, 
-              STRING_AGG(message, ', ') as messages
-       FROM commits 
-       WHERE DATE(created_at) = CURRENT_DATE`
-    );
+    // Get today's commits (using Nepal timezone)
+const commitsResult = await pool.query(
+  `SELECT COUNT(*) as count, 
+          STRING_AGG(message, ', ') as messages
+   FROM commits 
+   WHERE DATE(created_at AT TIME ZONE 'Asia/Kolkata') = CURRENT_DATE AT TIME ZONE 'Asia/Kolkata'`
+);
 
-    // Get today's sleep data
-    const sleepResult = await pool.query(
-      `SELECT hours_slept, quality, source 
-       FROM sleep 
-       WHERE DATE(date) = CURRENT_DATE`
-    );
+// Get today's sleep data (using Nepal timezone)
+const sleepResult = await pool.query(
+  `SELECT hours_slept, quality, source 
+   FROM sleep 
+   WHERE DATE(date AT TIME ZONE 'Asia/Kolkata') = CURRENT_DATE AT TIME ZONE 'Asia/Kolkata'`
+);
 
-    // Get today's screen time data
-    const screenTimeResult = await pool.query(
-      `SELECT total_minutes, work_minutes, social_minutes, entertainment_minutes, source 
-       FROM screen_time 
-       WHERE DATE(date) = CURRENT_DATE`
-    );
+// Get today's screen time data (using Nepal timezone)
+const screenTimeResult = await pool.query(
+  `SELECT total_minutes, work_minutes, social_minutes, entertainment_minutes, source 
+   FROM screen_time 
+   WHERE DATE(date AT TIME ZONE 'Asia/Kolkata') = CURRENT_DATE AT TIME ZONE 'Asia/Kolkata'`
+);
 
     // Build the unified response
     const dashboard = {
