@@ -6,27 +6,33 @@ const router = express.Router();
 // Returns a unified dashboard of all data for today
 router.get('/today', async (req, res) => {
   try {
-   // Get today's commits (using Nepal timezone offset UTC+5:45)
-const commitsResult = await pool.query(
-  `SELECT COUNT(*) as count, 
-          STRING_AGG(message, ', ') as messages
-   FROM commits 
-   WHERE DATE(created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kathmandu') = CURRENT_DATE AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kathmandu'`
-);
+    // Get today's date in Nepal timezone
+    const nepalDate = new Date().toLocaleString('en-CA', { timeZone: 'Asia/Kathmandu' }).split(' ')[0];
 
-// Get today's sleep data
-const sleepResult = await pool.query(
-  `SELECT hours_slept, quality, source 
-   FROM sleep 
-   WHERE DATE(date AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kathmandu') = CURRENT_DATE AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kathmandu'`
-);
+    // Get today's commits
+    const commitsResult = await pool.query(
+      `SELECT COUNT(*) as count, 
+              STRING_AGG(message, ', ') as messages
+       FROM commits 
+       WHERE DATE(created_at AT TIME ZONE 'UTC'+INTERVAL '5:45') = $1::date`,
+      [nepalDate]
+    );
 
-// Get today's screen time data
-const screenTimeResult = await pool.query(
-  `SELECT total_minutes, work_minutes, social_minutes, entertainment_minutes, source 
-   FROM screen_time 
-   WHERE DATE(date AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kathmandu') = CURRENT_DATE AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kathmandu'`
-);
+    // Get today's sleep data
+    const sleepResult = await pool.query(
+      `SELECT hours_slept, quality, source 
+       FROM sleep 
+       WHERE DATE(date) = $1::date`,
+      [nepalDate]
+    );
+
+    // Get today's screen time data
+    const screenTimeResult = await pool.query(
+      `SELECT total_minutes, work_minutes, social_minutes, entertainment_minutes, source 
+       FROM screen_time 
+       WHERE DATE(date) = $1::date`,
+      [nepalDate]
+    );
 
     // Build the unified response
     const dashboard = {
