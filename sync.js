@@ -12,40 +12,61 @@ async function syncCommits() {
   try {
     console.log('🔄 Starting sync...');
 
-    // Get commits directly from the personal-api repo
-    const commitsResponse = await axios.get(
-      'https://api.github.com/repos/kissmoon17/personal-api/commits',
+    // Get all user repos
+    const reposResponse = await axios.get(
+      'https://api.github.com/users/kissmoon17/repos',
       {
         headers: {
           'Authorization': `token ${process.env.GITHUB_TOKEN}`,
           'Accept': 'application/vnd.github.v3+json'
         },
         params: {
-          per_page: 100  // Get up to 100 commits
+          per_page: 100,
+          sort: 'updated'
         }
       }
     );
 
-    console.log(`Found ${commitsResponse.data.length} commits`);
+    console.log(`Found ${reposResponse.data.length} repos`);
 
-    // Save each commit to database
-    for (const commit of commitsResponse.data) {
+    // For each repo, fetch commits
+    for (const repo of reposResponse.data) {
       try {
-        console.log('Inserting commit:', commit.sha, commit.commit.message);
-
-        await pool.query(
-          `INSERT INTO commits (commit_hash, message, author, created_at)
-          VALUES ($1, $2, $3, $4)
-          ON CONFLICT (commit_hash) DO NOTHING`,
-          [
-            commit.sha,
-            commit.commit.message,
-            commit.commit.author.name,
-            new Date(commit.commit.author.date)
-          ]
+        const commitsResponse = await axios.get(
+          `https://api.github.com/repos/kissmoon17/${repo.name}/commits`,
+          {
+            headers: {
+              'Authorization': `token ${process.env.GITHUB_TOKEN}`,
+              'Accept': 'application/vnd.github.v3+json'
+            },
+            params: {
+              per_page: 100
+            }
+          }
         );
+
+        console.log(`Found ${commitsResponse.data.length} commits in ${repo.name}`);
+
+        // Save each commit to database
+        for (const commit of commitsResponse.data) {
+          try {
+            await pool.query(
+              `INSERT INTO commits (commit_hash, message, author, created_at)
+              VALUES ($1, $2, $3, $4)
+              ON CONFLICT (commit_hash) DO NOTHING`,
+              [
+                commit.sha,
+                commit.commit.message,
+                commit.commit.author.name,
+                new Date(commit.commit.author.date)
+              ]
+            );
+          } catch (err) {
+            console.error('Error inserting commit:', err.message);
+          }
+        }
       } catch (err) {
-        console.error('Error inserting commit:', err.message);
+        console.error(`Error fetching commits from ${repo.name}:`, err.message);
       }
     }
 
