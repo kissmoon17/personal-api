@@ -81,6 +81,82 @@ router.get('/today', async (req, res) => {
   }
 });
 
+// GET /api/me/timeframe?period=7days
+// Returns aggregated data for the selected timeframe
+router.get('/timeframe', async (req, res) => {
+  try {
+    const period = req.query.period || '1day';
+    let daysBack = 1;
+    
+    if (period === '7days') daysBack = 7;
+    if (period === '30days') daysBack = 30;
+    
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - daysBack);
+    
+    // Get commits for period
+    const commitsResult = await pool.query(
+      `SELECT COUNT(*) as count, 
+              STRING_AGG(message, ', ') as messages
+       FROM commits 
+       WHERE DATE(created_at AT TIME ZONE 'UTC'+INTERVAL '5:45') >= $1::date`,
+      [startDate.toISOString().split('T')[0]]
+    );
+
+    // Get sleep average
+    const sleepResult = await pool.query(
+      `SELECT AVG(CAST(hours_slept AS FLOAT)) as avg_hours,
+              AVG(CAST(quality AS FLOAT)) as avg_quality,
+              COUNT(*) as days_logged
+       FROM sleep 
+       WHERE DATE(date) >= $1::date`,
+      [startDate.toISOString().split('T')[0]]
+    );
+
+    // Get screen time average
+    const screenResult = await pool.query(
+      `SELECT AVG(CAST(total_minutes AS INT)) as avg_total,
+              AVG(CAST(work_minutes AS INT)) as avg_work,
+              AVG(CAST(social_minutes AS INT)) as avg_social,
+              AVG(CAST(entertainment_minutes AS INT)) as avg_entertainment,
+              COUNT(*) as days_logged
+       FROM screen_time 
+       WHERE DATE(date) >= $1::date`,
+      [startDate.toISOString().split('T')[0]]
+    );
+
+    const response = {
+      success: true,
+      period: period,
+      summary: {
+        commits: {
+          count: parseInt(commitsResult.rows[0].count) || 0,
+          messages: commitsResult.rows[0].messages || "No commits"
+        },
+        sleep: sleepResult.rows[0] || {
+          avg_hours: null,
+          avg_quality: null,
+          days_logged: 0
+        },
+        screenTime: screenResult.rows[0] || {
+          avg_total: null,
+          avg_work: null,
+          avg_social: null,
+          avg_entertainment: null,
+          days_logged: 0
+        }
+      }
+    };
+
+    res.json(response);
+  } catch (error) {
+    console.error('Error fetching timeframe data:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to fetch timeframe data' 
+    });
+  }
+});
 // Helper function to calculate productivity score
 // Why? To give a simple score based on commits and work time
 function calculateProductivity(commits, workMinutes) {
