@@ -724,57 +724,57 @@
     </div>
 
     <script>
-        const API_URL = 'https://personal-api-production-aaef.up.railway.app';
+       const API_URL = 'https://personal-api-production-aaef.up.railway.app';
 
-        function setupHeader() {
-            const now = new Date();
-            const hour = now.getHours();
-            const greeting = hour < 12 ? 'Good morning,' : hour < 18 ? 'Good afternoon,' : 'Good evening,';
-            document.getElementById('greeting').textContent = greeting + ' Kissmoon.';
+function setupHeader() {
+    const now = new Date();
+    const hour = now.getHours();
+    const greeting = hour < 12 ? 'Good morning,' : hour < 18 ? 'Good afternoon,' : 'Good evening,';
+    document.getElementById('greeting').textContent = greeting + ' Kissmoon.';
 
-            document.getElementById('today-date').textContent = now.toLocaleDateString(undefined, {
-                weekday: 'long',
-                month: 'long',
-                day: 'numeric',
-                year: 'numeric'
-            });
+    document.getElementById('today-date').textContent = now.toLocaleDateString(undefined, {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric'
+    });
 
-            document.getElementById('day-mark').textContent =
-                now.toLocaleDateString(undefined, { weekday: 'short' }).slice(0, 2);
-        }
+    document.getElementById('day-mark').textContent =
+        now.toLocaleDateString(undefined, { weekday: 'short' }).slice(0, 2);
+}
 
-        setupHeader();
+setupHeader();
 
-        const themeToggle = document.getElementById('theme-toggle');
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+const themeToggle = document.getElementById('theme-toggle');
+const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
-        if (localStorage.getItem('dark-mode') === 'true' || (prefersDark && !localStorage.getItem('dark-mode'))) {
-            document.body.classList.add('dark-mode');
-            themeToggle.textContent = '☀️';
-        }
+if (localStorage.getItem('dark-mode') === 'true' || (prefersDark && !localStorage.getItem('dark-mode'))) {
+    document.body.classList.add('dark-mode');
+    themeToggle.textContent = '☀️';
+}
 
-        themeToggle.addEventListener('click', () => {
-            document.body.classList.toggle('dark-mode');
-            const isDark = document.body.classList.contains('dark-mode');
-            localStorage.setItem('dark-mode', isDark);
-            themeToggle.textContent = isDark ? '☀️' : '🌙';
-        });
+themeToggle.addEventListener('click', () => {
+    document.body.classList.toggle('dark-mode');
+    const isDark = document.body.classList.contains('dark-mode');
+    localStorage.setItem('dark-mode', isDark);
+    themeToggle.textContent = isDark ? '☀️' : '🌙';
+});
 
-        async function loadDashboard() {
-            try {
-                const response = await fetch(`${API_URL}/api/me/today`);
-                if (!response.ok) throw new Error('API error: ' + response.status);
-                
-                const data = await response.json();
-                if (!data.success) throw new Error(data.error || 'Unknown error');
-                
-                renderDashboard(data);
-                updateStatus('Connected ✓');
-            } catch (error) {
-                showError('Failed to load data: ' + error.message);
-                document.getElementById('loading').style.display = 'none';
-            }
-        }
+async function loadDashboard() {
+    try {
+        const response = await fetch(`${API_URL}/api/me/today`);
+        if (!response.ok) throw new Error('API error: ' + response.status);
+        
+        const data = await response.json();
+        if (!data.success) throw new Error(data.error || 'Unknown error');
+        
+        renderDashboard(data);
+        updateStatus('Connected ✓');
+    } catch (error) {
+        showError('Failed to load data: ' + error.message);
+        document.getElementById('loading').style.display = 'none';
+    }
+}
 
 function renderDashboard(data) {
     const summary = data.summary;
@@ -869,6 +869,145 @@ function renderDashboard(data) {
     document.getElementById('loading').style.display = 'none';
     document.getElementById('dashboard').style.display = 'block';
 }
+
+let currentTimeframe = 'today';
+
+async function loadTimeframe(period) {
+    currentTimeframe = period;
+    
+    // Update button states
+    document.querySelectorAll('.timeframe-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+
+    try {
+        const endpoint = period === 'today' ? '/today' : '/timeframe?period=' + period;
+        const response = await fetch(`${API_URL}/api/me${endpoint}`);
+        if (!response.ok) throw new Error('API error: ' + response.status);
+        
+        const data = await response.json();
+        if (!data.success) throw new Error(data.error || 'Unknown error');
+        
+        renderTimeframeData(data, period);
+        updateStatus('Connected ✓');
+    } catch (error) {
+        showError('Failed to load data: ' + error.message);
+    }
+}
+
+function renderTimeframeData(data, period) {
+    const summary = data.summary;
+
+    if (period === 'today') {
+        renderDashboard(data);
+    } else {
+        const commitsTotal = summary.commits.count || 0;
+        const sleepHours = parseFloat(summary.sleep.avg_hours) || 0;
+        const screenTotal = parseFloat(summary.screenTime.avg_total) || 0;
+        const sleepQuality = parseFloat(summary.sleep.avg_quality) || 0;
+
+        const workMinutes = parseFloat(summary.screenTime.avg_work) || 0;
+        const socialMinutes = parseFloat(summary.screenTime.avg_social) || 0;
+        const entertainmentMinutes = parseFloat(summary.screenTime.avg_entertainment) || 0;
+
+        const periodLabel = period === '7days' ? 'past 7 days' : 'past 30 days';
+        const metaLabel = period === '7days' ? 'Git activity recorded past 7 days' : 'Git activity recorded past 30 days';
+
+        document.getElementById('commits-count').textContent = commitsTotal;
+        document.querySelector('.metric:first-child .metric-label').textContent = 'Commits ' + periodLabel;
+        document.querySelector('.metric:first-child .metric-meta').textContent = metaLabel;
+        
+        document.getElementById('sleep-hours').textContent = sleepHours.toFixed(1);
+        document.getElementById('screen-total').textContent = Math.round(screenTotal / 60) + 'h';
+        document.getElementById('productivity-score').textContent = Math.round((commitsTotal * 5 + workMinutes * 0.1) / 100 * 100) + '%';
+
+        const surfaceColor = getComputedStyle(document.body).getPropertyValue('--surface').trim() || '#ffffff';
+        const ink2Color = getComputedStyle(document.body).getPropertyValue('--ink-2').trim() || '#607999';
+
+        Chart.helpers.each(Chart.instances, function(instance) {
+            instance.destroy();
+        });
+
+        new Chart(document.getElementById('screenChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Work', 'Social', 'Entertainment'],
+                datasets: [{
+                    data: [workMinutes, socialMinutes, entertainmentMinutes],
+                    backgroundColor: ['#4268e8', '#38b9d8', '#7650e9'],
+                    borderColor: surfaceColor,
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: ink2Color, font: { size: 12 } }
+                    }
+                }
+            }
+        });
+
+        new Chart(document.getElementById('qualityChart'), {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [sleepQuality, 1 - sleepQuality],
+                    backgroundColor: ['#19b879', 'rgba(128, 146, 173, 0.2)'],
+                    borderColor: surfaceColor,
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: false }
+                }
+            }
+        });
+
+        const commitsList = document.getElementById('commits-list');
+        if (summary.commits.messages) {
+            const messages = summary.commits.messages.split(', ');
+            commitsList.innerHTML = messages.map(msg => `
+                <div class="commit">
+                    <div class="commit-status">Recorded</div>
+                    <div class="commit-msg">${escapeHtml(msg)}</div>
+                </div>
+            `).join('');
+        } else {
+            commitsList.innerHTML = `<div class="commit"><div class="commit-msg">No commits in ${periodLabel}</div></div>`;
+        }
+
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+    }
+}
+
+function showError(msg) {
+    const errorEl = document.getElementById('error');
+    errorEl.textContent = msg;
+    errorEl.style.display = 'block';
+}
+
+function updateStatus(msg) {
+    const statusEl = document.getElementById('status');
+    statusEl.textContent = msg;
+    statusEl.style.display = 'inline-block';
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
         loadDashboard();
     </script>
 </body>
