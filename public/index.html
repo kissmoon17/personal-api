@@ -776,91 +776,96 @@
             }
         }
 
-        function renderDashboard(data) {
-            const summary = data.summary;
+function renderDashboard(data) {
+    const summary = data.summary;
 
-            const commitsToday = summary.commits.count || 0;
-            const sleepHours = parseFloat(summary.sleep.hours_slept) || 0;
-            const screenTotal = parseFloat(summary.screenTime.total_minutes) || 0;
-            const sleepQuality = parseFloat(summary.sleep.quality) || 0;
+    const commitsToday = summary.commits.count || 0;
+    const sleepHours = parseFloat(summary.sleep.hours_slept) || 0;
+    const screenTotal = parseFloat(summary.screenTime.total_minutes) || 0;
+    const sleepQuality = parseFloat(summary.sleep.quality) || 0;
 
-            const workMinutes = parseFloat(summary.screenTime.work_minutes) || 0;
-            const socialMinutes = parseFloat(summary.screenTime.social_minutes) || 0;
-            const entertainmentMinutes = parseFloat(summary.screenTime.entertainment_minutes) || 0;
-            const productivityScore = data.dailySummary.productivity || 0;
+    const workMinutes = parseFloat(summary.screenTime.work_minutes) || 0;
+    const socialMinutes = parseFloat(summary.screenTime.social_minutes) || 0;
+    const entertainmentMinutes = parseFloat(summary.screenTime.entertainment_minutes) || 0;
+    const productivityScore = data.dailySummary.productivity || 0;
 
-            document.getElementById('commits-count').textContent = commitsToday;
-            document.getElementById('sleep-hours').textContent = parseFloat(sleepHours).toFixed(1);
-            document.getElementById('screen-total').textContent = Math.round(screenTotal / 60) + 'h';
-            document.getElementById('productivity-score').textContent = productivityScore + '%';
-            document.getElementById('score-ring').style.setProperty('--score', Math.max(0, Math.min(100, productivityScore)));
-            document.getElementById('score-ring-value').textContent = productivityScore;
+    document.getElementById('commits-count').textContent = commitsToday;
+    document.getElementById('sleep-hours').textContent = parseFloat(sleepHours).toFixed(1);
+    document.getElementById('screen-total').textContent = Math.round(screenTotal / 60) + 'h';
+    document.getElementById('productivity-score').textContent = productivityScore + '%';
+    document.getElementById('score-ring').style.setProperty('--score', Math.max(0, Math.min(100, productivityScore)));
+    document.getElementById('score-ring-value').textContent = productivityScore;
 
-            const surfaceColor = getComputedStyle(document.body).getPropertyValue('--surface').trim() || '#ffffff';
-            const ink2Color = getComputedStyle(document.body).getPropertyValue('--ink-2').trim() || '#607999';
+    const surfaceColor = getComputedStyle(document.body).getPropertyValue('--surface').trim() || '#ffffff';
+    const ink2Color = getComputedStyle(document.body).getPropertyValue('--ink-2').trim() || '#607999';
 
-            // Screen Time Chart
-            new Chart(document.getElementById('screenChart'), {
-                type: 'doughnut',
-                data: {
-                    labels: ['Work', 'Social', 'Entertainment'],
-                    datasets: [{
-                        data: [workMinutes, socialMinutes, entertainmentMinutes],
-                        backgroundColor: ['#4268e8', '#38b9d8', '#7650e9'],
-                        borderColor: surfaceColor,
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: { color: ink2Color, font: { size: 12 } }
-                        }
-                    }
+    // Destroy old charts first
+    Chart.helpers.each(Chart.instances, function(instance) {
+        instance.destroy();
+    });
+
+    // Screen Time Chart
+    new Chart(document.getElementById('screenChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Work', 'Social', 'Entertainment'],
+            datasets: [{
+                data: [workMinutes, socialMinutes, entertainmentMinutes],
+                backgroundColor: ['#4268e8', '#38b9d8', '#7650e9'],
+                borderColor: surfaceColor,
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { color: ink2Color, font: { size: 12 } }
                 }
-            });
-
-            // Sleep Quality Gauge
-            new Chart(document.getElementById('qualityChart'), {
-                type: 'doughnut',
-                data: {
-                    datasets: [{
-                        data: [sleepQuality, 1 - sleepQuality],
-                        backgroundColor: ['#19b879', 'rgba(128, 146, 173, 0.2)'],
-                        borderColor: surfaceColor,
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: { enabled: false }
-                    }
-                }
-            });
-
-            // Commits List
-            const commitsList = document.getElementById('commits-list');
-            if (summary.commits.messages) {
-                const messages = summary.commits.messages.split(', ');
-                commitsList.innerHTML = messages.map(msg => `
-                    <div class="commit">
-                        <div class="commit-status">Recorded</div>
-                        <div class="commit-msg">${escapeHtml(msg)}</div>
-                    </div>
-                `).join('');
-            } else {
-                commitsList.innerHTML = '<div class="commit"><div class="commit-msg">No commits today</div></div>';
             }
-
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('dashboard').style.display = 'block';
         }
+    });
+
+    // Sleep Quality Gauge
+    new Chart(document.getElementById('qualityChart'), {
+        type: 'doughnut',
+        data: {
+            datasets: [{
+                data: [sleepQuality, 1 - sleepQuality],
+                backgroundColor: ['#19b879', 'rgba(128, 146, 173, 0.2)'],
+                borderColor: surfaceColor,
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { enabled: false }
+            }
+        }
+    });
+
+    // Commits List
+    const commitsList = document.getElementById('commits-list');
+    if (summary.commits.messages) {
+        const messages = summary.commits.messages.split(', ');
+        commitsList.innerHTML = messages.map(msg => `
+            <div class="commit">
+                <div class="commit-status">Recorded</div>
+                <div class="commit-msg">${escapeHtml(msg)}</div>
+            </div>
+        `).join('');
+    } else {
+        commitsList.innerHTML = '<div class="commit"><div class="commit-msg">No commits today</div></div>';
+    }
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+}
 
         function showError(msg) {
             const errorEl = document.getElementById('error');
@@ -905,80 +910,106 @@
             }
         }
 
-        function renderTimeframeData(data, period) {
-            const summary = data.summary;
+function renderTimeframeData(data, period) {
+    const summary = data.summary;
 
-            if (period === 'today') {
-                // Today view - use existing logic
-                renderDashboard(data);
-            } else {
-                // 7/30 day view - show averages
-                const commitsTotal = summary.commits.count || 0;
-                const sleepHours = parseFloat(summary.sleep.avg_hours) || 0;
-                const screenTotal = parseFloat(summary.screenTime.avg_total) || 0;
-                const sleepQuality = parseFloat(summary.sleep.avg_quality) || 0;
+    if (period === 'today') {
+        // Today view - use existing logic
+        renderDashboard(data);
+    } else {
+        // 7/30 day view - show averages
+        const commitsTotal = summary.commits.count || 0;
+        const sleepHours = parseFloat(summary.sleep.avg_hours) || 0;
+        const screenTotal = parseFloat(summary.screenTime.avg_total) || 0;
+        const sleepQuality = parseFloat(summary.sleep.avg_quality) || 0;
 
-                const workMinutes = parseFloat(summary.screenTime.avg_work) || 0;
-                const socialMinutes = parseFloat(summary.screenTime.avg_social) || 0;
-                const entertainmentMinutes = parseFloat(summary.screenTime.avg_entertainment) || 0;
+        const workMinutes = parseFloat(summary.screenTime.avg_work) || 0;
+        const socialMinutes = parseFloat(summary.screenTime.avg_social) || 0;
+        const entertainmentMinutes = parseFloat(summary.screenTime.avg_entertainment) || 0;
 
-                document.getElementById('commits-count').textContent = commitsTotal;
-                document.getElementById('sleep-hours').textContent = sleepHours.toFixed(1);
-                document.getElementById('screen-total').textContent = Math.round(screenTotal / 60) + 'h';
-                document.getElementById('productivity-score').textContent = Math.round((commitsTotal * 5 + workMinutes * 0.1) / 100 * 100) + '%';
+        // Update labels based on period
+        const periodLabel = period === '7days' ? 'past 7 days' : 'past 30 days';
+        const metaLabel = period === '7days' ? 'Git activity recorded past 7 days' : 'Git activity recorded past 30 days';
 
-                const surfaceColor = getComputedStyle(document.body).getPropertyValue('--surface').trim() || '#ffffff';
-                const ink2Color = getComputedStyle(document.body).getPropertyValue('--ink-2').trim() || '#607999';
+        document.getElementById('commits-count').textContent = commitsTotal;
+        document.querySelector('.metric:first-child .metric-label').textContent = 'Commits ' + periodLabel;
+        document.querySelector('.metric:first-child .metric-meta').textContent = metaLabel;
+        
+        document.getElementById('sleep-hours').textContent = sleepHours.toFixed(1);
+        document.getElementById('screen-total').textContent = Math.round(screenTotal / 60) + 'h';
+        document.getElementById('productivity-score').textContent = Math.round((commitsTotal * 5 + workMinutes * 0.1) / 100 * 100) + '%';
 
-                // Screen Time Chart
-                new Chart(document.getElementById('screenChart'), {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Work', 'Social', 'Entertainment'],
-                        datasets: [{
-                            data: [workMinutes, socialMinutes, entertainmentMinutes],
-                            backgroundColor: ['#4268e8', '#38b9d8', '#7650e9'],
-                            borderColor: surfaceColor,
-                            borderWidth: 2
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'bottom',
-                                labels: { color: ink2Color, font: { size: 12 } }
-                            }
-                        }
+        const surfaceColor = getComputedStyle(document.body).getPropertyValue('--surface').trim() || '#ffffff';
+        const ink2Color = getComputedStyle(document.body).getPropertyValue('--ink-2').trim() || '#607999';
+
+        // Destroy old charts first
+        Chart.helpers.each(Chart.instances, function(instance) {
+            instance.destroy();
+        });
+
+        // Screen Time Chart
+        new Chart(document.getElementById('screenChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Work', 'Social', 'Entertainment'],
+                datasets: [{
+                    data: [workMinutes, socialMinutes, entertainmentMinutes],
+                    backgroundColor: ['#4268e8', '#38b9d8', '#7650e9'],
+                    borderColor: surfaceColor,
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: ink2Color, font: { size: 12 } }
                     }
-                });
-
-                // Sleep Quality Gauge
-                new Chart(document.getElementById('qualityChart'), {
-                    type: 'doughnut',
-                    data: {
-                        datasets: [{
-                            data: [sleepQuality, 1 - sleepQuality],
-                            backgroundColor: ['#19b879', 'rgba(128, 146, 173, 0.2)'],
-                            borderColor: surfaceColor,
-                            borderWidth: 2
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: { display: false },
-                            tooltip: { enabled: false }
-                        }
-                    }
-                });
-
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('dashboard').style.display = 'block';
+                }
             }
+        });
+
+        // Sleep Quality Gauge
+        new Chart(document.getElementById('qualityChart'), {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [sleepQuality, 1 - sleepQuality],
+                    backgroundColor: ['#19b879', 'rgba(128, 146, 173, 0.2)'],
+                    borderColor: surfaceColor,
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: false }
+                }
+            }
+        });
+
+        // Commits List
+        const commitsList = document.getElementById('commits-list');
+        if (summary.commits.messages) {
+            const messages = summary.commits.messages.split(', ');
+            commitsList.innerHTML = messages.map(msg => `
+                <div class="commit">
+                    <div class="commit-status">Recorded</div>
+                    <div class="commit-msg">${escapeHtml(msg)}</div>
+                </div>
+            `).join('');
+        } else {
+            commitsList.innerHTML = `<div class="commit"><div class="commit-msg">No commits in ${periodLabel}</div></div>`;
         }
+
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+    }
+}
         loadDashboard();
     </script>
 </body>
