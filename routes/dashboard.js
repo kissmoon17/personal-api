@@ -62,11 +62,11 @@ router.get('/today', async (req, res) => {
       dailySummary: {
         productivity: calculateProductivity(
           parseInt(commitsResult.rows[0].count) || 0,
-          screenTimeResult.rows[0]?.work_minutes || 0
+          parseFloat(screenTimeResult.rows[0]?.work_minutes) || 0
         ),
         wellbeing: calculateWellbeing(
-          sleepResult.rows[0]?.hours_slept || 0,
-          sleepResult.rows[0]?.quality || 0
+          parseFloat(sleepResult.rows[0]?.hours_slept) || 0,
+          parseFloat(sleepResult.rows[0]?.quality) || 0
         )
       }
     };
@@ -125,6 +125,15 @@ router.get('/timeframe', async (req, res) => {
       [startDate.toISOString().split('T')[0]]
     );
 
+    // Calculate productivity score based on daily averages
+    // For multi-day periods, we score the daily average as if it were a single day
+    const avgCommitsPerDay = parseInt(commitsResult.rows[0].count) / daysBack || 0;
+    const avgWorkMinutesPerDay = parseFloat(screenResult.rows[0]?.avg_work) || 0;
+    const productivityScore = calculateProductivity(
+      Math.round(avgCommitsPerDay * 10) / 10, // Round to 1 decimal for fairness
+      avgWorkMinutesPerDay
+    );
+
     const response = {
       success: true,
       period: period,
@@ -145,6 +154,13 @@ router.get('/timeframe', async (req, res) => {
           avg_entertainment: null,
           days_logged: 0
         }
+      },
+      dailySummary: {
+        productivity: productivityScore,
+        wellbeing: calculateWellbeing(
+          parseFloat(sleepResult.rows[0]?.avg_hours) || 0,
+          parseFloat(sleepResult.rows[0]?.avg_quality) || 0
+        )
       }
     };
 
@@ -157,21 +173,43 @@ router.get('/timeframe', async (req, res) => {
     });
   }
 });
-// Helper function to calculate productivity score
-// Why? To give a simple score based on commits and work time
+/**
+ * Calculate productivity score (0-100)
+ * 
+ * FORMULA (unified across all timeframes):
+ * - Commit score: min(commits / 5 * 50, 50) — up to 5 commits = 50 points
+ * - Work time score: min(workMinutes / 240 * 50, 50) — 4h work = 50 points
+ * - Total: commitScore + workTimeScore, clamped to [0, 100]
+ * 
+ * ASSUMPTIONS:
+ * - A productive day has ~5 commits and 4h (240 min) of focused work
+ * - Both metrics contribute equally to productivity (50/50 split)
+ * - Missing data (null) is treated as 0 contribution
+ * - Results always clamp to [0, 100]
+ * 
+ * @param {number|null} commits - Number of commits (null = no data)
+ * @param {number|null} workMinutes - Minutes spent on work (null = no data)
+ * @returns {number|null} Score 0-100, or null if all data missing
+ */
 function calculateProductivity(commits, workMinutes) {
-  let score = 0;
-  
-  // Commits contribute to score
-  if (commits > 0) score += 30;
-  if (commits > 2) score += 20;
-  if (commits > 5) score += 20;
-  
-  // Work screen time contributes
-  if (workMinutes > 120) score += 30;
-  if (workMinutes > 240) score += 20;
-  
-  return Math.min(100, score); // Cap at 100
+  // Treat null/undefined as 0
+  commits = commits || 0;
+  workMinutes = workMinutes || 0;
+
+  // If both metrics are missing, return null
+  if (commits === 0 && workMinutes === 0) {
+    return null;
+  }
+
+  // Commit score: 0-50 (5 commits = 50 points)
+  const commitScore = Math.min((commits / 5) * 50, 50);
+
+  // Work time score: 0-50 (240 minutes = 50 points)
+  const workScore = Math.min((workMinutes / 240) * 50, 50);
+
+  // Total score, always between 0-100
+  const totalScore = Math.round(commitScore + workScore);
+  return Math.max(0, Math.min(100, totalScore));
 }
 
 // Helper function to calculate wellbeing score

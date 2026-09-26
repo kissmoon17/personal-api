@@ -920,7 +920,12 @@ function renderTimeframeData(data, period) {
         
         document.getElementById('sleep-hours').textContent = sleepHours.toFixed(1);
         document.getElementById('screen-total').textContent = Math.round(screenTotal / 60) + 'h';
-        document.getElementById('productivity-score').textContent = Math.round((commitsTotal * 5 + workMinutes * 0.1) / 100 * 100) + '%';
+        
+        // Use backend-calculated productivity score (always 0-100)
+        const productivityScore = data.dailySummary.productivity || 0;
+        document.getElementById('productivity-score').textContent = productivityScore + '%';
+        document.getElementById('score-ring').style.setProperty('--score', Math.max(0, Math.min(100, productivityScore)));
+        document.getElementById('score-ring-value').textContent = productivityScore;
 
         const surfaceColor = getComputedStyle(document.body).getPropertyValue('--surface').trim() || '#ffffff';
         const ink2Color = getComputedStyle(document.body).getPropertyValue('--ink-2').trim() || '#607999';
