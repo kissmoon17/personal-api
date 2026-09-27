@@ -723,6 +723,264 @@
                 height: 42px;
             }
         }
+
+
+        /* Redesign overrides: intentionally kept in this existing page stylesheet. */
+/* Visual refresh for the Personal API dashboard. Kept separate from the page logic. */
+:root {
+  --bg: #f3f6fb;
+  --surface: #ffffff;
+  --surface-soft: #f7f9fc;
+  --ink: #14213b;
+  --ink-2: #3d4d66;
+  --muted: #5c6b80;
+  --line: #dce4ef;
+  --blue: #3156c8;
+  --blue-soft: #eaf0ff;
+  --green: #168858;
+  --green-soft: #e7f5ee;
+  --purple: #7050c9;
+  --purple-soft: #f0ecfb;
+  --cyan: #0787a5;
+  --shadow: 0 12px 32px rgba(23, 42, 76, 0.055);
+  color-scheme: light;
+}
+
+body.dark-mode {
+  --bg: #101318;
+  --surface: #191d24;
+  --surface-soft: #222731;
+  --ink: #f1f3f6;
+  --ink-2: #c5cbd4;
+  --muted: #9da6b3;
+  --line: #343b46;
+  --blue: #91a9ff;
+  --blue-soft: #293247;
+  --green: #65c79a;
+  --green-soft: #1d352c;
+  --purple: #b7a3ef;
+  --purple-soft: #2d2840;
+  --cyan: #6ec6d2;
+  --shadow: 0 14px 34px rgba(0, 0, 0, 0.2);
+  color-scheme: dark;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.5;
+}
+button, input { font: inherit; }
+button:focus-visible, a:focus-visible, input:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--blue) 55%, transparent);
+  outline-offset: 3px;
+}
+[hidden] { display: none !important; }
+
+.app {
+  width: min(100%, 1680px);
+  margin-inline: auto;
+  grid-template-columns: 252px minmax(0, 1fr);
+}
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  padding: 30px 18px 22px;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  border-right-color: var(--line);
+}
+.brand { padding-inline: 8px; margin-bottom: 44px; }
+.brand-mark {
+  width: 40px;
+  height: 40px;
+  border-radius: 13px;
+  background: var(--blue);
+  color: #fff;
+  box-shadow: 0 7px 16px rgba(49, 86, 200, .19);
+}
+.brand-name { font-size: 1.04rem; letter-spacing: -.025em; }
+.nav { gap: 5px; }
+.nav a {
+  position: relative;
+  padding: 11px 12px;
+  border-radius: 10px;
+  color: var(--ink-2);
+  font-size: .9rem;
+}
+.nav a.active { background: var(--blue-soft); color: var(--blue); }
+.nav a.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 9px;
+  bottom: 9px;
+  width: 3px;
+  border-radius: 99px;
+  background: var(--blue);
+}
+.nav-icon { font-size: .95rem; }
+.sidebar-note {
+  padding: 17px;
+  border: 1px solid color-mix(in srgb, var(--purple) 12%, var(--line));
+  border-radius: 14px;
+  background: var(--purple-soft);
+}
+.sidebar-note p { font-size: .82rem; line-height: 1.6; }
+.main {
+  max-width: 1500px;
+  padding: clamp(24px, 3.4vw, 52px) clamp(20px, 4vw, 60px) 40px;
+}
+.topbar { align-items: center; margin-bottom: 24px; }
+.eyebrow { color: var(--muted); font-size: .7rem; letter-spacing: .11em; }
+h1 { font-size: clamp(1.9rem, 3.4vw, 2.65rem); letter-spacing: -.05em; }
+.date { margin-top: 9px; color: var(--muted); font-size: .94rem; }
+.topbar-actions { gap: 9px; }
+.theme-toggle, .btn-add {
+  min-height: 42px;
+  border-radius: 11px;
+  padding: 9px 13px;
+}
+.theme-toggle { border-color: var(--line); box-shadow: 0 2px 5px rgba(20, 33, 59, .035); }
+.btn-add { box-shadow: 0 7px 16px rgba(49, 86, 200, .18); }
+.day-mark { width: 42px; height: 42px; border-radius: 13px; font-size: .78rem; }
+.status-row { min-height: 0; margin-bottom: 16px; }
+.api-status { padding: 6px 10px; font-size: .74rem; }
+.error, .success { border-radius: 12px; }
+.timeframe-toggle {
+  width: fit-content;
+  padding: 4px;
+  gap: 3px;
+  margin-bottom: 22px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: 0 3px 10px rgba(20, 33, 59, .035);
+}
+.timeframe-btn {
+  min-height: 37px;
+  border-color: transparent;
+  border-radius: 9px;
+  padding: 7px 15px;
+  background: transparent;
+  font-size: .83rem;
+}
+.timeframe-btn.active { background: var(--blue); }
+.metrics { gap: 14px; margin-bottom: 20px; }
+.metric {
+  min-height: 160px;
+  padding: 17px 18px 16px;
+  border-radius: 15px;
+  box-shadow: var(--shadow);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.metric:hover { transform: translateY(-2px); box-shadow: 0 16px 36px rgba(23, 42, 76, .09); }
+.metric-top { height: 36px; }
+.metric-icon { width: 36px; height: 36px; }
+.metric-icon svg { width: 18px; height: 18px; }
+.metric-label { margin-top: 13px; font-size: .8rem; }
+.metric-value { margin-top: 4px; font-size: clamp(1.7rem, 2.4vw, 2rem); letter-spacing: -.05em; }
+.metric-meta { margin-top: 8px; font-size: .75rem; line-height: 1.4; }
+.score-ring { top: 15px; right: 15px; width: 54px; height: 54px; }
+.score-ring::after { inset: 5px; }
+.score-ring span { font-size: .78rem; }
+.charts { grid-template-columns: minmax(0, 1.25fr) minmax(280px, .85fr); gap: 14px; margin-bottom: 20px; }
+.chart-card, .commits-card {
+  border-radius: 15px;
+  box-shadow: var(--shadow);
+}
+.chart-card { min-height: 280px; padding: 19px 20px 16px; }
+.chart-card h3, .commits-heading h3 { font-size: .9rem; letter-spacing: -.01em; }
+.chart-container { height: 220px; }
+.chart-empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: .84rem;
+  text-align: center;
+}
+.commits-card { padding: 17px 20px 7px; }
+.commits-heading { padding-bottom: 12px; margin-bottom: 1px; }
+.commits-heading h3::before { width: 25px; height: 25px; }
+.commits-heading small { color: var(--muted); }
+.commit { grid-template-columns: 106px minmax(0, 1fr); gap: 12px; padding: 11px 0; }
+.commit-msg { font-size: .82rem; line-height: 1.45; }
+.commit-status { font-size: .73rem; }
+.footer { padding-top: 20px; color: var(--muted); }
+.modal { padding: 18px; backdrop-filter: blur(5px); }
+.modal-content {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 0 24px 70px rgba(12, 20, 36, .2);
+}
+.form-group input { min-height: 44px; border-radius: 10px; }
+.btn-primary { min-height: 45px; border-radius: 10px; }
+
+@media (max-width: 1050px) {
+  .app { grid-template-columns: 218px minmax(0, 1fr); }
+  .main { padding: 28px 24px 36px; }
+  .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+  .app { display: block; }
+  .sidebar {
+    position: sticky;
+    z-index: 20;
+    top: 0;
+    height: auto;
+    min-height: 0;
+    padding: 10px 14px 8px;
+    border-bottom: 1px solid var(--line);
+    box-shadow: 0 5px 18px rgba(20, 33, 59, .055);
+    backdrop-filter: blur(14px);
+  }
+  .brand { margin-bottom: 8px; padding-inline: 3px; }
+  .brand-mark { width: 34px; height: 34px; border-radius: 11px; }
+  .nav { gap: 4px; overflow-x: auto; scrollbar-width: none; }
+  .nav::-webkit-scrollbar { display: none; }
+  .nav a { flex: 0 0 auto; gap: 6px; padding: 8px 7px; font-size: .78rem; }
+  .nav-icon { width: 14px; }
+  .nav a.active::before { top: auto; right: 10px; bottom: 3px; left: 10px; width: auto; height: 2px; }
+  .sidebar-note { display: none; }
+  .main { padding: 25px 18px 30px; }
+  .charts { grid-template-columns: 1fr; }
+  .chart-card { min-height: 260px; }
+  .chart-container { height: 205px; }
+}
+@media (max-width: 520px) {
+  .main { padding: 22px 14px 28px; }
+  .topbar { display: grid; grid-template-columns: 1fr; align-items: flex-start; gap: 12px; }
+  .topbar-actions { flex-wrap: wrap; justify-content: flex-start; gap: 7px; }
+  .topbar-actions .btn-add { min-height: 38px; padding: 7px 9px; font-size: .79rem; }
+  .theme-toggle { min-height: 38px; padding: 7px 10px; }
+  .day-mark { width: 36px; height: 36px; }
+  h1 { font-size: clamp(1.6rem, 8vw, 2rem); }
+  .date { font-size: .82rem; }
+  .timeframe-toggle { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); }
+  .timeframe-btn { padding-inline: 8px; }
+  .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .metric { min-height: 150px; padding: 14px 13px; }
+  .metric-value { font-size: clamp(1.45rem, 7vw, 1.8rem); }
+  .score-ring { width: 43px; height: 43px; top: 12px; right: 11px; }
+  .score-ring::after { inset: 4px; }
+  .score-ring span { font-size: .66rem; }
+  .metric-meta { font-size: .69rem; }
+  .chart-card { padding: 17px 15px 14px; }
+  .commits-card { padding-inline: 15px; }
+  .commit { grid-template-columns: 1fr; gap: 3px; padding: 10px 0; }
+  .footer { text-align: left; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
+
     </style>
 </head>
 <body>
@@ -735,10 +993,10 @@
                 </div>
 
                 <nav class="nav" aria-label="Dashboard navigation">
-                    <a class="active" href="#overview"><span class="nav-icon">⌂</span>Overview</a>
-                    <a href="#charts"><span class="nav-icon">◌</span>Trends</a>
-                    <a href="#commits"><span class="nav-icon">&lt;/&gt;</span>Activity</a>
-                    <a href="#connection"><span class="nav-icon">●</span>Connection</a>
+                    <a class="active" href="#overview" aria-current="page"><span class="nav-icon" aria-hidden="true">⌂</span>Overview</a>
+                    <a href="#charts"><span class="nav-icon" aria-hidden="true">◌</span>Trends</a>
+                    <a href="#commits"><span class="nav-icon" aria-hidden="true">&lt;/&gt;</span>Activity</a>
+                    <a href="#connection"><span class="nav-icon" aria-hidden="true">●</span>Connection</a>
                 </nav>
             </div>
 
@@ -758,21 +1016,21 @@
                 <div class="topbar-actions">
                     <button class="btn-add" onclick="openSleepModal()">💤 Sleep</button>
                     <button class="btn-add" onclick="openScreenModal()">📱 Screen</button>
-                    <button class="theme-toggle" id="theme-toggle" title="Toggle dark mode">🌙</button>
+                    <button type="button" class="theme-toggle" id="theme-toggle" title="Toggle color theme" aria-label="Toggle color theme">🌙</button>
                     <div class="day-mark" id="day-mark">P</div>
                 </div>
             </header>
 
             <div class="status-row" id="connection">
-                <div id="status" class="api-status" style="display: none;"></div>
+                <div id="status" class="api-status" role="status" aria-live="polite" style="display: none;"></div>
             </div>
 
-            <div id="error" class="error"></div>
+            <div id="error" class="error" role="alert"></div>
             <div id="success" class="success"></div>
             <div class="timeframe-toggle">
-                <button class="timeframe-btn active" onclick="loadTimeframe('today')">Today</button>
-                <button class="timeframe-btn" onclick="loadTimeframe('7days')">7 Days</button>
-                <button class="timeframe-btn" onclick="loadTimeframe('30days')">30 Days</button>
+                <button type="button" class="timeframe-btn active" aria-pressed="true" onclick="loadTimeframe('today', this)">Today</button>
+                <button type="button" class="timeframe-btn" aria-pressed="false" onclick="loadTimeframe('7days', this)">7 Days</button>
+                <button type="button" class="timeframe-btn" aria-pressed="false" onclick="loadTimeframe('30days', this)">30 Days</button>
             </div>
             <div id="loading" class="loading">
                 <p>Loading today's data...</p>
@@ -799,7 +1057,7 @@
                         </div>
                         <div class="metric-label">Sleep hours</div>
                         <div class="metric-value" id="sleep-hours">0</div>
-                        <div class="metric-meta">Last night's sleep</div>
+                        <div class="metric-meta" id="sleep-meta">Last night's sleep</div>
                     </div>
 
                     <div class="metric">
@@ -810,7 +1068,7 @@
                         </div>
                         <div class="metric-label">Screen time</div>
                         <div class="metric-value" id="screen-total">0h</div>
-                        <div class="metric-meta">Work, social and entertainment</div>
+                        <div class="metric-meta" id="screen-meta">Work, social and entertainment</div>
                     </div>
 
                     <div class="metric">
@@ -824,7 +1082,7 @@
                         </div>
                         <div class="metric-label">Productivity score</div>
                         <div class="metric-value" id="productivity-score">0%</div>
-                        <div class="metric-meta">Based on today's recorded activity</div>
+                        <div class="metric-meta" id="score-meta">Based on today's recorded activity</div>
                     </div>
                 </section>
 
@@ -832,14 +1090,16 @@
                     <div class="chart-card">
                         <h3>Screen time breakdown</h3>
                         <div class="chart-container">
-                            <canvas id="screenChart"></canvas>
+                            <canvas id="screenChart" role="img" aria-label="Screen time breakdown chart"></canvas>
+                            <div class="chart-empty" id="screen-empty" hidden>No screen-time data tracked for this period.</div>
                         </div>
                     </div>
 
                     <div class="chart-card">
                         <h3>Sleep quality</h3>
                         <div class="chart-container">
-                            <canvas id="qualityChart"></canvas>
+                            <canvas id="qualityChart" role="img" aria-label="Sleep quality chart"></canvas>
+                            <div class="chart-empty" id="quality-empty" hidden>No sleep-quality data tracked for this period.</div>
                         </div>
                     </div>
                 </section>
@@ -847,7 +1107,7 @@
                 <section class="commits-card" id="commits">
                     <div class="commits-heading">
                         <h3>Recent commits</h3>
-                        <small>Today</small>
+                        <small id="activity-period">Today</small>
                     </div>
                     <div id="commits-list"></div>
                 </section>
@@ -1036,91 +1296,144 @@
             }
         }
 
-        function renderDashboard(data) {
-            const summary = data.summary;
+        function numericValue(value) {
+            if (value === null || value === undefined || value === '') return null;
+            const number = Number(value);
+            return Number.isFinite(number) ? number : null;
+        }
 
-            const commitsToday = summary.commits.count || 0;
-            const sleepHours = parseFloat(summary.sleep.hours_slept) || 0;
-            const screenTotal = parseFloat(summary.screenTime.total_minutes) || 0;
-            const sleepQuality = parseFloat(summary.sleep.quality) || 0;
+        function formatMinutes(value) {
+            if (value === null) return 'Not tracked';
+            const minutes = Math.max(0, value);
+            if (minutes < 60) return `${Math.round(minutes)}m`;
+            return `${Number((minutes / 60).toFixed(1))}h`;
+        }
 
-            const workMinutes = parseFloat(summary.screenTime.work_minutes) || 0;
-            const socialMinutes = parseFloat(summary.screenTime.social_minutes) || 0;
-            const entertainmentMinutes = parseFloat(summary.screenTime.entertainment_minutes) || 0;
-            const productivityScore = data.dailySummary.productivity || 0;
+        function setScore(rawScore, period) {
+            const value = numericValue(rawScore);
+            const score = value === null ? null : Math.round(Math.max(0, Math.min(100, value)));
+            const scoreText = score === null ? '—' : String(score);
+            document.getElementById('productivity-score').textContent = score === null ? '—' : `${score}%`;
+            document.getElementById('score-ring').style.setProperty('--score', score === null ? 0 : score);
+            document.getElementById('score-ring-value').textContent = scoreText;
+            const captions = {
+                today: "Based on today's recorded activity",
+                '7days': 'Average daily score · past 7 days',
+                '30days': 'Average daily score · past 30 days'
+            };
+            document.getElementById('score-meta').textContent = score === null
+                ? 'Not enough recorded data for a score'
+                : captions[period] || captions.today;
+        }
 
-            document.getElementById('commits-count').textContent = commitsToday;
-            document.querySelector('.metric:first-child .metric-label').textContent = 'Commits today';
-            document.querySelector('.metric:first-child .metric-meta').textContent = 'Git activity recorded today';
-            
-            document.getElementById('sleep-hours').textContent = parseFloat(sleepHours).toFixed(1);
-            document.getElementById('screen-total').textContent = Math.round(screenTotal / 60) + 'h';
-            document.getElementById('productivity-score').textContent = productivityScore + '%';
-            document.getElementById('score-ring').style.setProperty('--score', Math.max(0, Math.min(100, productivityScore)));
-            document.getElementById('score-ring-value').textContent = productivityScore;
+        function renderCharts({ workMinutes, socialMinutes, entertainmentMinutes, sleepQuality, period }) {
+            const screenCanvas = document.getElementById('screenChart');
+            const qualityCanvas = document.getElementById('qualityChart');
+            const screenValues = [workMinutes, socialMinutes, entertainmentMinutes];
+            const hasScreenData = screenValues.some(value => value !== null);
+            const hasQualityData = sleepQuality !== null;
+            const label = period === 'today' ? 'today' : `in the ${period === '7days' ? 'past 7 days' : 'past 30 days'}`;
+
+            Chart.getChart(screenCanvas)?.destroy();
+            Chart.getChart(qualityCanvas)?.destroy();
+            document.getElementById('screen-empty').hidden = hasScreenData;
+            document.getElementById('quality-empty').hidden = hasQualityData;
+            screenCanvas.hidden = !hasScreenData;
+            qualityCanvas.hidden = !hasQualityData;
+            screenCanvas.setAttribute('aria-label', hasScreenData
+                ? `Screen time breakdown ${label}: work ${workMinutes ?? 0} minutes, social ${socialMinutes ?? 0} minutes, entertainment ${entertainmentMinutes ?? 0} minutes.`
+                : `No screen-time data tracked ${label}.`);
+            qualityCanvas.setAttribute('aria-label', hasQualityData
+                ? `Sleep quality ${label}: ${Math.round(Math.max(0, Math.min(1, sleepQuality)) * 100)} percent.`
+                : `No sleep-quality data tracked ${label}.`);
+            if (!hasScreenData && !hasQualityData) return;
 
             const surfaceColor = getComputedStyle(document.body).getPropertyValue('--surface').trim() || '#ffffff';
-            const ink2Color = getComputedStyle(document.body).getPropertyValue('--ink-2').trim() || '#607999';
-
-            Chart.helpers.each(Chart.instances, function(instance) {
-                instance.destroy();
-            });
-
-            new Chart(document.getElementById('screenChart'), {
-                type: 'doughnut',
-                data: {
-                    labels: ['Work', 'Social', 'Entertainment'],
-                    datasets: [{
-                        data: [workMinutes, socialMinutes, entertainmentMinutes],
-                        backgroundColor: ['#4268e8', '#38b9d8', '#7650e9'],
-                        borderColor: surfaceColor,
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: { color: ink2Color, font: { size: 12 } }
+            const ink2Color = getComputedStyle(document.body).getPropertyValue('--ink-2').trim() || '#3d4d66';
+            if (hasScreenData) {
+                new Chart(screenCanvas, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Work', 'Social', 'Entertainment'],
+                        datasets: [{
+                            data: screenValues.map(value => value ?? 0),
+                            backgroundColor: ['#4268e8', '#38b9d8', '#7650e9'],
+                            borderColor: surfaceColor,
+                            borderWidth: 3,
+                            hoverOffset: 5
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '68%',
+                        plugins: {
+                            legend: { position: 'bottom', labels: { color: ink2Color, usePointStyle: true, pointStyle: 'circle', padding: 18 } }
                         }
                     }
-                }
-            });
-
-            new Chart(document.getElementById('qualityChart'), {
-                type: 'doughnut',
-                data: {
-                    datasets: [{
-                        data: [sleepQuality, 1 - sleepQuality],
-                        backgroundColor: ['#19b879', 'rgba(128, 146, 173, 0.2)'],
-                        borderColor: surfaceColor,
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: { enabled: false }
+                });
+            }
+            if (hasQualityData) {
+                const quality = Math.max(0, Math.min(1, sleepQuality));
+                new Chart(qualityCanvas, {
+                    type: 'doughnut',
+                    data: {
+                        datasets: [{
+                            data: [quality, 1 - quality],
+                            backgroundColor: ['#19b879', 'rgba(128, 146, 173, 0.2)'],
+                            borderColor: surfaceColor,
+                            borderWidth: 3,
+                            hoverOffset: 3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '72%',
+                        plugins: { legend: { display: false }, tooltip: { enabled: false } }
                     }
-                }
-            });
+                });
+            }
+        }
 
+        function renderCommits(summary, period) {
+            const messages = summary.commits.messages;
             const commitsList = document.getElementById('commits-list');
-            if (summary.commits.messages) {
-                const messages = summary.commits.messages.split(', ');
-                commitsList.innerHTML = messages.map(msg => `
+            const periodLabels = { today: 'Today', '7days': 'Past 7 days', '30days': 'Past 30 days' };
+            const periodLabel = periodLabels[period] || 'Today';
+            document.getElementById('activity-period').textContent = periodLabel;
+            if (messages && !/^No commits/i.test(messages)) {
+                commitsList.innerHTML = messages.split(', ').map(msg => `
                     <div class="commit">
                         <div class="commit-status">Recorded</div>
                         <div class="commit-msg">${escapeHtml(msg)}</div>
                     </div>
                 `).join('');
             } else {
-                commitsList.innerHTML = '<div class="commit"><div class="commit-msg">No commits today</div></div>';
+                const emptyLabel = period === 'today' ? 'today' : `in the ${period === '7days' ? 'past 7 days' : 'past 30 days'}`;
+                commitsList.innerHTML = `<div class="commit"><div class="commit-msg">No commits recorded ${emptyLabel}.</div></div>`;
             }
+        }
+
+        function renderDashboard(data) {
+            const summary = data.summary;
+            const sleepHours = numericValue(summary.sleep.hours_slept);
+            const screenTotal = numericValue(summary.screenTime.total_minutes);
+            const sleepQuality = numericValue(summary.sleep.quality);
+            const workMinutes = numericValue(summary.screenTime.work_minutes);
+            const socialMinutes = numericValue(summary.screenTime.social_minutes);
+            const entertainmentMinutes = numericValue(summary.screenTime.entertainment_minutes);
+
+            document.getElementById('commits-count').textContent = numericValue(summary.commits.count) ?? 0;
+            document.querySelector('.metric:first-child .metric-label').textContent = 'Commits today';
+            document.querySelector('.metric:first-child .metric-meta').textContent = 'Git activity recorded today';
+            document.getElementById('sleep-hours').textContent = sleepHours === null ? 'Not tracked' : `${sleepHours.toFixed(1)}h`;
+            document.getElementById('sleep-meta').textContent = sleepHours === null ? 'No sleep entry for today' : "Last night's sleep";
+            document.getElementById('screen-total').textContent = formatMinutes(screenTotal);
+            document.getElementById('screen-meta').textContent = screenTotal === null ? 'Add a screen-time entry to see the breakdown' : 'Work, social & entertainment';
+            setScore(data.dailySummary.productivity, 'today');
+            renderCharts({ workMinutes, socialMinutes, entertainmentMinutes, sleepQuality, period: 'today' });
+            renderCommits(summary, 'today');
 
             document.getElementById('loading').style.display = 'none';
             document.getElementById('dashboard').style.display = 'block';
@@ -1128,13 +1441,15 @@
 
         let currentTimeframe = 'today';
 
-        async function loadTimeframe(period) {
+        async function loadTimeframe(period, button) {
             currentTimeframe = period;
             
             document.querySelectorAll('.timeframe-btn').forEach(btn => {
                 btn.classList.remove('active');
+                btn.setAttribute('aria-pressed', 'false');
             });
-            event.target.classList.add('active');
+            button.classList.add('active');
+            button.setAttribute('aria-pressed', 'true');
 
             try {
                 const endpoint = period === 'today' ? '/today' : '/timeframe?period=' + period;
@@ -1152,101 +1467,38 @@
         }
 
         function renderTimeframeData(data, period) {
-            const summary = data.summary;
-
             if (period === 'today') {
                 renderDashboard(data);
-            } else {
-                const commitsTotal = summary.commits.count || 0;
-                const sleepHours = parseFloat(summary.sleep.avg_hours) || 0;
-                const screenTotal = parseFloat(summary.screenTime.avg_total) || 0;
-                const sleepQuality = parseFloat(summary.sleep.avg_quality) || 0;
-
-                const workMinutes = parseFloat(summary.screenTime.avg_work) || 0;
-                const socialMinutes = parseFloat(summary.screenTime.avg_social) || 0;
-                const entertainmentMinutes = parseFloat(summary.screenTime.avg_entertainment) || 0;
-
-                const periodLabel = period === '7days' ? 'past 7 days' : 'past 30 days';
-                const metaLabel = period === '7days' ? 'Git activity recorded past 7 days' : 'Git activity recorded past 30 days';
-
-                document.getElementById('commits-count').textContent = commitsTotal;
-                document.querySelector('.metric:first-child .metric-label').textContent = 'Commits ' + periodLabel;
-                document.querySelector('.metric:first-child .metric-meta').textContent = metaLabel;
-                
-                document.getElementById('sleep-hours').textContent = sleepHours.toFixed(1);
-                document.getElementById('screen-total').textContent = Math.round(screenTotal / 60) + 'h';
-                
-                const productivityScore = data.dailySummary.productivity || 0;
-                document.getElementById('productivity-score').textContent = productivityScore + '%';
-                document.getElementById('score-ring').style.setProperty('--score', Math.max(0, Math.min(100, productivityScore)));
-                document.getElementById('score-ring-value').textContent = productivityScore;
-
-                const surfaceColor = getComputedStyle(document.body).getPropertyValue('--surface').trim() || '#ffffff';
-                const ink2Color = getComputedStyle(document.body).getPropertyValue('--ink-2').trim() || '#607999';
-
-                Chart.helpers.each(Chart.instances, function(instance) {
-                    instance.destroy();
-                });
-
-                new Chart(document.getElementById('screenChart'), {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Work', 'Social', 'Entertainment'],
-                        datasets: [{
-                            data: [workMinutes, socialMinutes, entertainmentMinutes],
-                            backgroundColor: ['#4268e8', '#38b9d8', '#7650e9'],
-                            borderColor: surfaceColor,
-                            borderWidth: 2
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'bottom',
-                                labels: { color: ink2Color, font: { size: 12 } }
-                            }
-                        }
-                    }
-                });
-
-                new Chart(document.getElementById('qualityChart'), {
-                    type: 'doughnut',
-                    data: {
-                        datasets: [{
-                            data: [sleepQuality, 1 - sleepQuality],
-                            backgroundColor: ['#19b879', 'rgba(128, 146, 173, 0.2)'],
-                            borderColor: surfaceColor,
-                            borderWidth: 2
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: { display: false },
-                            tooltip: { enabled: false }
-                        }
-                    }
-                });
-
-                const commitsList = document.getElementById('commits-list');
-                if (summary.commits.messages) {
-                    const messages = summary.commits.messages.split(', ');
-                    commitsList.innerHTML = messages.map(msg => `
-                        <div class="commit">
-                            <div class="commit-status">Recorded</div>
-                            <div class="commit-msg">${escapeHtml(msg)}</div>
-                        </div>
-                    `).join('');
-                } else {
-                    commitsList.innerHTML = `<div class="commit"><div class="commit-msg">No commits in ${periodLabel}</div></div>`;
-                }
-
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('dashboard').style.display = 'block';
+                return;
             }
+            const summary = data.summary;
+            const sleepHours = numericValue(summary.sleep.avg_hours);
+            const screenTotal = numericValue(summary.screenTime.avg_total);
+            const sleepQuality = numericValue(summary.sleep.avg_quality);
+            const workMinutes = numericValue(summary.screenTime.avg_work);
+            const socialMinutes = numericValue(summary.screenTime.avg_social);
+            const entertainmentMinutes = numericValue(summary.screenTime.avg_entertainment);
+            const periodText = period === '7days' ? 'past 7 days' : 'past 30 days';
+            const sleepDays = numericValue(summary.sleep.days_logged);
+            const screenDays = numericValue(summary.screenTime.days_logged);
+
+            document.getElementById('commits-count').textContent = numericValue(summary.commits.count) ?? 0;
+            document.querySelector('.metric:first-child .metric-label').textContent = `Commits ${periodText}`;
+            document.querySelector('.metric:first-child .metric-meta').textContent = `Git activity recorded ${periodText}`;
+            document.getElementById('sleep-hours').textContent = sleepHours === null ? 'Not tracked' : `${sleepHours.toFixed(1)}h`;
+            document.getElementById('sleep-meta').textContent = sleepHours === null
+                ? `No sleep data ${periodText}`
+                : `Average across ${sleepDays ?? 0} logged day${sleepDays === 1 ? '' : 's'}`;
+            document.getElementById('screen-total').textContent = formatMinutes(screenTotal);
+            document.getElementById('screen-meta').textContent = screenTotal === null
+                ? `No screen-time data ${periodText}`
+                : `Daily average across ${screenDays ?? 0} logged day${screenDays === 1 ? '' : 's'}`;
+            setScore(data.dailySummary?.productivity, period);
+            renderCharts({ workMinutes, socialMinutes, entertainmentMinutes, sleepQuality, period });
+            renderCommits(summary, period);
+
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
         }
 
         function showError(msg) {
