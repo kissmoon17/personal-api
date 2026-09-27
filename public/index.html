@@ -173,6 +173,12 @@
             margin-bottom: 25px;
         }
 
+        .topbar-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
         .theme-toggle {
             background: var(--surface);
             color: var(--ink);
@@ -186,6 +192,22 @@
 
         .theme-toggle:hover {
             background: var(--surface-soft);
+        }
+
+        .btn-add {
+            background: var(--blue);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 14px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: background 0.2s ease;
+        }
+
+        .btn-add:hover {
+            opacity: 0.9;
         }
 
         .eyebrow {
@@ -253,6 +275,17 @@
             background: rgba(220, 38, 38, 0.1);
             border: 1px solid rgba(220, 38, 38, 0.3);
             color: #ef4444;
+            padding: 11px 14px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            display: none;
+            font-size: .84rem;
+        }
+
+        .success {
+            background: rgba(25, 184, 121, 0.1);
+            border: 1px solid rgba(25, 184, 121, 0.3);
+            color: var(--green);
             padding: 11px 14px;
             border-radius: 10px;
             margin-bottom: 16px;
@@ -483,6 +516,134 @@
             text-align: right;
         }
 
+        .timeframe-toggle {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .timeframe-btn {
+            background: var(--surface);
+            color: var(--ink-2);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 8px 14px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .timeframe-btn:hover {
+            border-color: var(--blue);
+            color: var(--ink);
+        }
+
+        .timeframe-btn.active {
+            background: var(--blue);
+            color: white;
+            border-color: var(--blue);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 24px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: var(--shadow);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            font-size: 1.3rem;
+            color: var(--ink);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            color: var(--muted);
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            display: grid;
+            place-items: center;
+        }
+
+        .modal-close:hover {
+            color: var(--ink);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--ink);
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: var(--surface-soft);
+            color: var(--ink);
+            font-size: 0.9rem;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--blue);
+            background: var(--surface);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 12px;
+            background: var(--blue);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+
         @media (max-width: 1050px) {
             .app {
                 grid-template-columns: 205px minmax(0, 1fr);
@@ -562,34 +723,6 @@
                 height: 42px;
             }
         }
-                .timeframe-toggle {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 20px;
-        }
-
-        .timeframe-btn {
-            background: var(--surface);
-            color: var(--ink-2);
-            border: 1px solid var(--line);
-            border-radius: 8px;
-            padding: 8px 14px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: 600;
-            transition: all 0.2s ease;
-        }
-
-        .timeframe-btn:hover {
-            border-color: var(--blue);
-            color: var(--ink);
-        }
-
-        .timeframe-btn.active {
-            background: var(--blue);
-            color: white;
-            border-color: var(--blue);
-        }
     </style>
 </head>
 <body>
@@ -622,7 +755,9 @@
                     <h1 id="greeting">Good morning.</h1>
                     <p class="date" id="today-date"></p>
                 </div>
-                <div style="display: flex; gap: 12px; align-items: center;">
+                <div class="topbar-actions">
+                    <button class="btn-add" onclick="openSleepModal()">💤 Sleep</button>
+                    <button class="btn-add" onclick="openScreenModal()">📱 Screen</button>
                     <button class="theme-toggle" id="theme-toggle" title="Toggle dark mode">🌙</button>
                     <div class="day-mark" id="day-mark">P</div>
                 </div>
@@ -633,6 +768,7 @@
             </div>
 
             <div id="error" class="error"></div>
+            <div id="success" class="success"></div>
             <div class="timeframe-toggle">
                 <button class="timeframe-btn active" onclick="loadTimeframe('today')">Today</button>
                 <button class="timeframe-btn" onclick="loadTimeframe('7days')">7 Days</button>
@@ -723,295 +859,412 @@
         </main>
     </div>
 
-    <script>
-       const API_URL = 'https://personal-api-production-aaef.up.railway.app';
-
-function setupHeader() {
-    const now = new Date();
-    const hour = now.getHours();
-    const greeting = hour < 12 ? 'Good morning,' : hour < 18 ? 'Good afternoon,' : 'Good evening,';
-    document.getElementById('greeting').textContent = greeting + ' Kissmoon.';
-
-    document.getElementById('today-date').textContent = now.toLocaleDateString(undefined, {
-        weekday: 'long',
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric'
-    });
-
-    document.getElementById('day-mark').textContent =
-        now.toLocaleDateString(undefined, { weekday: 'short' }).slice(0, 2);
-}
-
-setupHeader();
-
-const themeToggle = document.getElementById('theme-toggle');
-const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-if (localStorage.getItem('dark-mode') === 'true' || (prefersDark && !localStorage.getItem('dark-mode'))) {
-    document.body.classList.add('dark-mode');
-    themeToggle.textContent = '☀️';
-}
-
-themeToggle.addEventListener('click', () => {
-    document.body.classList.toggle('dark-mode');
-    const isDark = document.body.classList.contains('dark-mode');
-    localStorage.setItem('dark-mode', isDark);
-    themeToggle.textContent = isDark ? '☀️' : '🌙';
-});
-
-async function loadDashboard() {
-    try {
-        const response = await fetch(`${API_URL}/api/me/today`);
-        if (!response.ok) throw new Error('API error: ' + response.status);
-        
-        const data = await response.json();
-        if (!data.success) throw new Error(data.error || 'Unknown error');
-        
-        renderDashboard(data);
-        updateStatus('Connected ✓');
-    } catch (error) {
-        showError('Failed to load data: ' + error.message);
-        document.getElementById('loading').style.display = 'none';
-    }
-}
-
-function renderDashboard(data) {
-    const summary = data.summary;
-
-    const commitsToday = summary.commits.count || 0;
-    const sleepHours = parseFloat(summary.sleep.hours_slept) || 0;
-    const screenTotal = parseFloat(summary.screenTime.total_minutes) || 0;
-    const sleepQuality = parseFloat(summary.sleep.quality) || 0;
-
-    const workMinutes = parseFloat(summary.screenTime.work_minutes) || 0;
-    const socialMinutes = parseFloat(summary.screenTime.social_minutes) || 0;
-    const entertainmentMinutes = parseFloat(summary.screenTime.entertainment_minutes) || 0;
-    const productivityScore = data.dailySummary.productivity || 0;
-
-    document.getElementById('commits-count').textContent = commitsToday;
-    document.querySelector('.metric:first-child .metric-label').textContent = 'Commits today';
-    document.querySelector('.metric:first-child .metric-meta').textContent = 'Git activity recorded today';
-    
-    document.getElementById('sleep-hours').textContent = parseFloat(sleepHours).toFixed(1);
-    document.getElementById('screen-total').textContent = Math.round(screenTotal / 60) + 'h';
-    document.getElementById('productivity-score').textContent = productivityScore + '%';
-    document.getElementById('score-ring').style.setProperty('--score', Math.max(0, Math.min(100, productivityScore)));
-    document.getElementById('score-ring-value').textContent = productivityScore;
-
-    const surfaceColor = getComputedStyle(document.body).getPropertyValue('--surface').trim() || '#ffffff';
-    const ink2Color = getComputedStyle(document.body).getPropertyValue('--ink-2').trim() || '#607999';
-
-    // Destroy old charts first
-    Chart.helpers.each(Chart.instances, function(instance) {
-        instance.destroy();
-    });
-
-    // Screen Time Chart
-    new Chart(document.getElementById('screenChart'), {
-        type: 'doughnut',
-        data: {
-            labels: ['Work', 'Social', 'Entertainment'],
-            datasets: [{
-                data: [workMinutes, socialMinutes, entertainmentMinutes],
-                backgroundColor: ['#4268e8', '#38b9d8', '#7650e9'],
-                borderColor: surfaceColor,
-                borderWidth: 2
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: { color: ink2Color, font: { size: 12 } }
-                }
-            }
-        }
-    });
-
-    // Sleep Quality Gauge
-    new Chart(document.getElementById('qualityChart'), {
-        type: 'doughnut',
-        data: {
-            datasets: [{
-                data: [sleepQuality, 1 - sleepQuality],
-                backgroundColor: ['#19b879', 'rgba(128, 146, 173, 0.2)'],
-                borderColor: surfaceColor,
-                borderWidth: 2
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: { enabled: false }
-            }
-        }
-    });
-
-    // Commits List
-    const commitsList = document.getElementById('commits-list');
-    if (summary.commits.messages) {
-        const messages = summary.commits.messages.split(', ');
-        commitsList.innerHTML = messages.map(msg => `
-            <div class="commit">
-                <div class="commit-status">Recorded</div>
-                <div class="commit-msg">${escapeHtml(msg)}</div>
+    <!-- Sleep Entry Modal -->
+    <div id="sleepModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Log Sleep</h2>
+                <button class="modal-close" onclick="closeSleepModal()">&times;</button>
             </div>
-        `).join('');
-    } else {
-        commitsList.innerHTML = '<div class="commit"><div class="commit-msg">No commits today</div></div>';
-    }
+            <form id="sleepForm" onsubmit="submitSleep(event)">
+                <div class="form-group">
+                    <label for="sleepDate">Date</label>
+                    <input type="date" id="sleepDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="sleepHours">Hours Slept</label>
+                    <input type="number" id="sleepHours" min="0" max="24" step="0.5" placeholder="7.5" required>
+                </div>
+                <button type="submit" class="btn-primary">Save Sleep</button>
+            </form>
+        </div>
+    </div>
 
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('dashboard').style.display = 'block';
-}
+    <!-- Screen Time Entry Modal -->
+    <div id="screenModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Log Screen Time</h2>
+                <button class="modal-close" onclick="closeScreenModal()">&times;</button>
+            </div>
+            <form id="screenForm" onsubmit="submitScreenTime(event)">
+                <div class="form-group">
+                    <label for="screenDate">Date</label>
+                    <input type="date" id="screenDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="productivityMinutes">Productivity (minutes)</label>
+                    <input type="number" id="productivityMinutes" min="0" placeholder="240" required>
+                </div>
+                <div class="form-group">
+                    <label for="entertainmentMinutes">Entertainment (minutes)</label>
+                    <input type="number" id="entertainmentMinutes" min="0" placeholder="120" required>
+                </div>
+                <button type="submit" class="btn-primary">Save Screen Time</button>
+            </form>
+        </div>
+    </div>
 
-let currentTimeframe = 'today';
+    <script>
+        const API_URL = 'https://personal-api-production-aaef.up.railway.app';
 
-async function loadTimeframe(period) {
-    currentTimeframe = period;
-    
-    // Update button states
-    document.querySelectorAll('.timeframe-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    event.target.classList.add('active');
+        function setupHeader() {
+            const now = new Date();
+            const hour = now.getHours();
+            const greeting = hour < 12 ? 'Good morning,' : hour < 18 ? 'Good afternoon,' : 'Good evening,';
+            document.getElementById('greeting').textContent = greeting + ' Kissmoon.';
 
-    try {
-        const endpoint = period === 'today' ? '/today' : '/timeframe?period=' + period;
-        const response = await fetch(`${API_URL}/api/me${endpoint}`);
-        if (!response.ok) throw new Error('API error: ' + response.status);
-        
-        const data = await response.json();
-        if (!data.success) throw new Error(data.error || 'Unknown error');
-        
-        renderTimeframeData(data, period);
-        updateStatus('Connected ✓');
-    } catch (error) {
-        showError('Failed to load data: ' + error.message);
-    }
-}
+            document.getElementById('today-date').textContent = now.toLocaleDateString(undefined, {
+                weekday: 'long',
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric'
+            });
 
-function renderTimeframeData(data, period) {
-    const summary = data.summary;
+            document.getElementById('day-mark').textContent =
+                now.toLocaleDateString(undefined, { weekday: 'short' }).slice(0, 2);
 
-    if (period === 'today') {
-        renderDashboard(data);
-    } else {
-        const commitsTotal = summary.commits.count || 0;
-        const sleepHours = parseFloat(summary.sleep.avg_hours) || 0;
-        const screenTotal = parseFloat(summary.screenTime.avg_total) || 0;
-        const sleepQuality = parseFloat(summary.sleep.avg_quality) || 0;
+            const dateStr = now.toISOString().split('T')[0];
+            document.getElementById('sleepDate').value = dateStr;
+            document.getElementById('screenDate').value = dateStr;
+        }
 
-        const workMinutes = parseFloat(summary.screenTime.avg_work) || 0;
-        const socialMinutes = parseFloat(summary.screenTime.avg_social) || 0;
-        const entertainmentMinutes = parseFloat(summary.screenTime.avg_entertainment) || 0;
+        setupHeader();
 
-        const periodLabel = period === '7days' ? 'past 7 days' : 'past 30 days';
-        const metaLabel = period === '7days' ? 'Git activity recorded past 7 days' : 'Git activity recorded past 30 days';
+        const themeToggle = document.getElementById('theme-toggle');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
-        document.getElementById('commits-count').textContent = commitsTotal;
-        document.querySelector('.metric:first-child .metric-label').textContent = 'Commits ' + periodLabel;
-        document.querySelector('.metric:first-child .metric-meta').textContent = metaLabel;
-        
-        document.getElementById('sleep-hours').textContent = sleepHours.toFixed(1);
-        document.getElementById('screen-total').textContent = Math.round(screenTotal / 60) + 'h';
-        
-        // Use backend-calculated productivity score (always 0-100)
-        const productivityScore = data.dailySummary.productivity || 0;
-        document.getElementById('productivity-score').textContent = productivityScore + '%';
-        document.getElementById('score-ring').style.setProperty('--score', Math.max(0, Math.min(100, productivityScore)));
-        document.getElementById('score-ring-value').textContent = productivityScore;
+        if (localStorage.getItem('dark-mode') === 'true' || (prefersDark && !localStorage.getItem('dark-mode'))) {
+            document.body.classList.add('dark-mode');
+            themeToggle.textContent = '☀️';
+        }
 
-        const surfaceColor = getComputedStyle(document.body).getPropertyValue('--surface').trim() || '#ffffff';
-        const ink2Color = getComputedStyle(document.body).getPropertyValue('--ink-2').trim() || '#607999';
-
-        Chart.helpers.each(Chart.instances, function(instance) {
-            instance.destroy();
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('dark-mode', isDark);
+            themeToggle.textContent = isDark ? '☀️' : '🌙';
         });
 
-        new Chart(document.getElementById('screenChart'), {
-            type: 'doughnut',
-            data: {
-                labels: ['Work', 'Social', 'Entertainment'],
-                datasets: [{
-                    data: [workMinutes, socialMinutes, entertainmentMinutes],
-                    backgroundColor: ['#4268e8', '#38b9d8', '#7650e9'],
-                    borderColor: surfaceColor,
-                    borderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: { color: ink2Color, font: { size: 12 } }
+        function openSleepModal() {
+            document.getElementById('sleepModal').classList.add('active');
+        }
+
+        function closeSleepModal() {
+            document.getElementById('sleepModal').classList.remove('active');
+        }
+
+        function openScreenModal() {
+            document.getElementById('screenModal').classList.add('active');
+        }
+
+        function closeScreenModal() {
+            document.getElementById('screenModal').classList.remove('active');
+        }
+
+        function showSuccess(msg) {
+            const successEl = document.getElementById('success');
+            successEl.textContent = msg;
+            successEl.style.display = 'block';
+            setTimeout(() => {
+                successEl.style.display = 'none';
+            }, 3000);
+        }
+
+        async function submitSleep(event) {
+            event.preventDefault();
+            const date = document.getElementById('sleepDate').value;
+            const hours_slept = parseFloat(document.getElementById('sleepHours').value);
+
+            try {
+                const response = await fetch(`${API_URL}/api/me/sleep`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ date, hours_slept, source: 'manual' })
+                });
+
+                if (!response.ok) throw new Error('Failed to save sleep data');
+                
+                showSuccess('Sleep data saved! 💤');
+                closeSleepModal();
+                document.getElementById('sleepForm').reset();
+                loadDashboard();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        async function submitScreenTime(event) {
+            event.preventDefault();
+            const date = document.getElementById('screenDate').value;
+            const work_minutes = parseInt(document.getElementById('productivityMinutes').value);
+            const entertainment_minutes = parseInt(document.getElementById('entertainmentMinutes').value);
+            const total_minutes = work_minutes + entertainment_minutes;
+
+            try {
+                const response = await fetch(`${API_URL}/api/me/screen-time`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ date, total_minutes, work_minutes, entertainment_minutes, source: 'manual' })
+                });
+
+                if (!response.ok) throw new Error('Failed to save screen time data');
+                
+                showSuccess('Screen time data saved! 📱');
+                closeScreenModal();
+                document.getElementById('screenForm').reset();
+                loadDashboard();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        async function loadDashboard() {
+            try {
+                const response = await fetch(`${API_URL}/api/me/today`);
+                if (!response.ok) throw new Error('API error: ' + response.status);
+                
+                const data = await response.json();
+                if (!data.success) throw new Error(data.error || 'Unknown error');
+                
+                renderDashboard(data);
+                updateStatus('Connected ✓');
+            } catch (error) {
+                showError('Failed to load data: ' + error.message);
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        function renderDashboard(data) {
+            const summary = data.summary;
+
+            const commitsToday = summary.commits.count || 0;
+            const sleepHours = parseFloat(summary.sleep.hours_slept) || 0;
+            const screenTotal = parseFloat(summary.screenTime.total_minutes) || 0;
+            const sleepQuality = parseFloat(summary.sleep.quality) || 0;
+
+            const workMinutes = parseFloat(summary.screenTime.work_minutes) || 0;
+            const socialMinutes = parseFloat(summary.screenTime.social_minutes) || 0;
+            const entertainmentMinutes = parseFloat(summary.screenTime.entertainment_minutes) || 0;
+            const productivityScore = data.dailySummary.productivity || 0;
+
+            document.getElementById('commits-count').textContent = commitsToday;
+            document.querySelector('.metric:first-child .metric-label').textContent = 'Commits today';
+            document.querySelector('.metric:first-child .metric-meta').textContent = 'Git activity recorded today';
+            
+            document.getElementById('sleep-hours').textContent = parseFloat(sleepHours).toFixed(1);
+            document.getElementById('screen-total').textContent = Math.round(screenTotal / 60) + 'h';
+            document.getElementById('productivity-score').textContent = productivityScore + '%';
+            document.getElementById('score-ring').style.setProperty('--score', Math.max(0, Math.min(100, productivityScore)));
+            document.getElementById('score-ring-value').textContent = productivityScore;
+
+            const surfaceColor = getComputedStyle(document.body).getPropertyValue('--surface').trim() || '#ffffff';
+            const ink2Color = getComputedStyle(document.body).getPropertyValue('--ink-2').trim() || '#607999';
+
+            Chart.helpers.each(Chart.instances, function(instance) {
+                instance.destroy();
+            });
+
+            new Chart(document.getElementById('screenChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Work', 'Social', 'Entertainment'],
+                    datasets: [{
+                        data: [workMinutes, socialMinutes, entertainmentMinutes],
+                        backgroundColor: ['#4268e8', '#38b9d8', '#7650e9'],
+                        borderColor: surfaceColor,
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: ink2Color, font: { size: 12 } }
+                        }
                     }
                 }
-            }
-        });
+            });
 
-        new Chart(document.getElementById('qualityChart'), {
-            type: 'doughnut',
-            data: {
-                datasets: [{
-                    data: [sleepQuality, 1 - sleepQuality],
-                    backgroundColor: ['#19b879', 'rgba(128, 146, 173, 0.2)'],
-                    borderColor: surfaceColor,
-                    borderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: { enabled: false }
+            new Chart(document.getElementById('qualityChart'), {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [sleepQuality, 1 - sleepQuality],
+                        backgroundColor: ['#19b879', 'rgba(128, 146, 173, 0.2)'],
+                        borderColor: surfaceColor,
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { enabled: false }
+                    }
                 }
-            }
-        });
+            });
 
-        const commitsList = document.getElementById('commits-list');
-        if (summary.commits.messages) {
-            const messages = summary.commits.messages.split(', ');
-            commitsList.innerHTML = messages.map(msg => `
-                <div class="commit">
-                    <div class="commit-status">Recorded</div>
-                    <div class="commit-msg">${escapeHtml(msg)}</div>
-                </div>
-            `).join('');
-        } else {
-            commitsList.innerHTML = `<div class="commit"><div class="commit-msg">No commits in ${periodLabel}</div></div>`;
+            const commitsList = document.getElementById('commits-list');
+            if (summary.commits.messages) {
+                const messages = summary.commits.messages.split(', ');
+                commitsList.innerHTML = messages.map(msg => `
+                    <div class="commit">
+                        <div class="commit-status">Recorded</div>
+                        <div class="commit-msg">${escapeHtml(msg)}</div>
+                    </div>
+                `).join('');
+            } else {
+                commitsList.innerHTML = '<div class="commit"><div class="commit-msg">No commits today</div></div>';
+            }
+
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
         }
 
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('dashboard').style.display = 'block';
-    }
-}
+        let currentTimeframe = 'today';
 
-function showError(msg) {
-    const errorEl = document.getElementById('error');
-    errorEl.textContent = msg;
-    errorEl.style.display = 'block';
-}
+        async function loadTimeframe(period) {
+            currentTimeframe = period;
+            
+            document.querySelectorAll('.timeframe-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
 
-function updateStatus(msg) {
-    const statusEl = document.getElementById('status');
-    statusEl.textContent = msg;
-    statusEl.style.display = 'inline-block';
-}
+            try {
+                const endpoint = period === 'today' ? '/today' : '/timeframe?period=' + period;
+                const response = await fetch(`${API_URL}/api/me${endpoint}`);
+                if (!response.ok) throw new Error('API error: ' + response.status);
+                
+                const data = await response.json();
+                if (!data.success) throw new Error(data.error || 'Unknown error');
+                
+                renderTimeframeData(data, period);
+                updateStatus('Connected ✓');
+            } catch (error) {
+                showError('Failed to load data: ' + error.message);
+            }
+        }
 
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
+        function renderTimeframeData(data, period) {
+            const summary = data.summary;
+
+            if (period === 'today') {
+                renderDashboard(data);
+            } else {
+                const commitsTotal = summary.commits.count || 0;
+                const sleepHours = parseFloat(summary.sleep.avg_hours) || 0;
+                const screenTotal = parseFloat(summary.screenTime.avg_total) || 0;
+                const sleepQuality = parseFloat(summary.sleep.avg_quality) || 0;
+
+                const workMinutes = parseFloat(summary.screenTime.avg_work) || 0;
+                const socialMinutes = parseFloat(summary.screenTime.avg_social) || 0;
+                const entertainmentMinutes = parseFloat(summary.screenTime.avg_entertainment) || 0;
+
+                const periodLabel = period === '7days' ? 'past 7 days' : 'past 30 days';
+                const metaLabel = period === '7days' ? 'Git activity recorded past 7 days' : 'Git activity recorded past 30 days';
+
+                document.getElementById('commits-count').textContent = commitsTotal;
+                document.querySelector('.metric:first-child .metric-label').textContent = 'Commits ' + periodLabel;
+                document.querySelector('.metric:first-child .metric-meta').textContent = metaLabel;
+                
+                document.getElementById('sleep-hours').textContent = sleepHours.toFixed(1);
+                document.getElementById('screen-total').textContent = Math.round(screenTotal / 60) + 'h';
+                
+                const productivityScore = data.dailySummary.productivity || 0;
+                document.getElementById('productivity-score').textContent = productivityScore + '%';
+                document.getElementById('score-ring').style.setProperty('--score', Math.max(0, Math.min(100, productivityScore)));
+                document.getElementById('score-ring-value').textContent = productivityScore;
+
+                const surfaceColor = getComputedStyle(document.body).getPropertyValue('--surface').trim() || '#ffffff';
+                const ink2Color = getComputedStyle(document.body).getPropertyValue('--ink-2').trim() || '#607999';
+
+                Chart.helpers.each(Chart.instances, function(instance) {
+                    instance.destroy();
+                });
+
+                new Chart(document.getElementById('screenChart'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Work', 'Social', 'Entertainment'],
+                        datasets: [{
+                            data: [workMinutes, socialMinutes, entertainmentMinutes],
+                            backgroundColor: ['#4268e8', '#38b9d8', '#7650e9'],
+                            borderColor: surfaceColor,
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { color: ink2Color, font: { size: 12 } }
+                            }
+                        }
+                    }
+                });
+
+                new Chart(document.getElementById('qualityChart'), {
+                    type: 'doughnut',
+                    data: {
+                        datasets: [{
+                            data: [sleepQuality, 1 - sleepQuality],
+                            backgroundColor: ['#19b879', 'rgba(128, 146, 173, 0.2)'],
+                            borderColor: surfaceColor,
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { enabled: false }
+                        }
+                    }
+                });
+
+                const commitsList = document.getElementById('commits-list');
+                if (summary.commits.messages) {
+                    const messages = summary.commits.messages.split(', ');
+                    commitsList.innerHTML = messages.map(msg => `
+                        <div class="commit">
+                            <div class="commit-status">Recorded</div>
+                            <div class="commit-msg">${escapeHtml(msg)}</div>
+                        </div>
+                    `).join('');
+                } else {
+                    commitsList.innerHTML = `<div class="commit"><div class="commit-msg">No commits in ${periodLabel}</div></div>`;
+                }
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+            }
+        }
+
+        function showError(msg) {
+            const errorEl = document.getElementById('error');
+            errorEl.textContent = msg;
+            errorEl.style.display = 'block';
+        }
+
+        function updateStatus(msg) {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = msg;
+            statusEl.style.display = 'inline-block';
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
 
         loadDashboard();
     </script>
