@@ -975,12 +975,13 @@
             event.preventDefault();
             const date = document.getElementById('sleepDate').value;
             const hours_slept = parseFloat(document.getElementById('sleepHours').value);
+            const quality = 0.5; // Default middle value
 
             try {
                 const response = await fetch(`${API_URL}/api/me/sleep`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ date, hours_slept, source: 'manual' })
+                    body: JSON.stringify({ date, hours_slept, quality, source: 'manual' })
                 });
 
                 if (!response.ok) throw new Error('Failed to save sleep data');
