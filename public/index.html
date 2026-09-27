@@ -132,32 +132,6 @@
             font-weight: 700;
         }
 
-        .sidebar-note {
-            margin-top: auto;
-            background: var(--purple-soft);
-            border-radius: 15px;
-            padding: 20px 18px;
-            color: var(--ink);
-        }
-
-        .sidebar-note .dot {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background: var(--surface);
-            color: var(--purple);
-            display: grid;
-            place-items: center;
-            margin-bottom: 14px;
-            font-size: .78rem;
-        }
-
-        .sidebar-note p {
-            font-size: 0.88rem;
-            line-height: 1.55;
-            font-weight: 600;
-        }
-
         .main {
             width: 100%;
             max-width: 1440px;
@@ -231,19 +205,6 @@
             margin-top: 6px;
             color: var(--muted);
             font-size: 1rem;
-        }
-
-        .day-mark {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: var(--surface-soft);
-            border: 1px solid var(--line);
-            display: grid;
-            place-items: center;
-            color: var(--ink);
-            font-weight: 700;
-            font-size: .86rem;
         }
 
         .status-row {
@@ -683,10 +644,6 @@
                 white-space: nowrap;
             }
 
-            .sidebar-note {
-                display: none;
-            }
-
             .main {
                 padding: 24px 16px;
             }
@@ -716,11 +673,6 @@
 
             .topbar {
                 align-items: center;
-            }
-
-            .day-mark {
-                width: 42px;
-                height: 42px;
             }
         }
 
@@ -821,13 +773,6 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   background: var(--blue);
 }
 .nav-icon { font-size: .95rem; }
-.sidebar-note {
-  padding: 17px;
-  border: 1px solid color-mix(in srgb, var(--purple) 12%, var(--line));
-  border-radius: 14px;
-  background: var(--purple-soft);
-}
-.sidebar-note p { font-size: .82rem; line-height: 1.6; }
 .main {
   max-width: 1500px;
   padding: clamp(24px, 3.4vw, 52px) clamp(20px, 4vw, 60px) 40px;
@@ -844,7 +789,6 @@ h1 { font-size: clamp(1.9rem, 3.4vw, 2.65rem); letter-spacing: -.05em; }
 }
 .theme-toggle { border-color: var(--line); box-shadow: 0 2px 5px rgba(20, 33, 59, .035); }
 .btn-add { box-shadow: 0 7px 16px rgba(49, 86, 200, .18); }
-.day-mark { width: 42px; height: 42px; border-radius: 13px; font-size: .78rem; }
 .status-row { min-height: 0; margin-bottom: 16px; }
 .api-status { padding: 6px 10px; font-size: .74rem; }
 .error, .success { border-radius: 12px; }
@@ -948,7 +892,6 @@ h1 { font-size: clamp(1.9rem, 3.4vw, 2.65rem); letter-spacing: -.05em; }
   .nav a { flex: 0 0 auto; gap: 6px; padding: 8px 7px; font-size: .78rem; }
   .nav-icon { width: 14px; }
   .nav a.active::before { top: auto; right: 10px; bottom: 3px; left: 10px; width: auto; height: 2px; }
-  .sidebar-note { display: none; }
   .main { padding: 25px 18px 30px; }
   .charts { grid-template-columns: 1fr; }
   .chart-card { min-height: 260px; }
@@ -960,7 +903,6 @@ h1 { font-size: clamp(1.9rem, 3.4vw, 2.65rem); letter-spacing: -.05em; }
   .topbar-actions { flex-wrap: wrap; justify-content: flex-start; gap: 7px; }
   .topbar-actions .btn-add { min-height: 38px; padding: 7px 9px; font-size: .79rem; }
   .theme-toggle { min-height: 38px; padding: 7px 10px; }
-  .day-mark { width: 36px; height: 36px; }
   h1 { font-size: clamp(1.6rem, 8vw, 2rem); }
   .date { font-size: .82rem; }
   .timeframe-toggle { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); }
@@ -993,16 +935,11 @@ h1 { font-size: clamp(1.9rem, 3.4vw, 2.65rem); letter-spacing: -.05em; }
                 </div>
 
                 <nav class="nav" aria-label="Dashboard navigation">
-                    <a class="active" href="#overview" aria-current="page"><span class="nav-icon" aria-hidden="true">⌂</span>Overview</a>
-                    <a href="#charts"><span class="nav-icon" aria-hidden="true">◌</span>Trends</a>
-                    <a href="#commits"><span class="nav-icon" aria-hidden="true">&lt;/&gt;</span>Activity</a>
-                    <a href="#connection"><span class="nav-icon" aria-hidden="true">●</span>Connection</a>
+                    <a class="active" href="#overview" aria-current="page">Overview</a>
+                    <a href="#charts">Trends</a>
+                    <a href="#commits">Activity</a>
+                    <a href="#connection">Connection</a>
                 </nav>
-            </div>
-
-            <div class="sidebar-note">
-                <div class="dot">+</div>
-                <p>Small records add up. This is just a simple place to see the day.</p>
             </div>
         </aside>
 
@@ -1017,7 +954,6 @@ h1 { font-size: clamp(1.9rem, 3.4vw, 2.65rem); letter-spacing: -.05em; }
                     <button class="btn-add" onclick="openSleepModal()">💤 Sleep</button>
                     <button class="btn-add" onclick="openScreenModal()">📱 Screen</button>
                     <button type="button" class="theme-toggle" id="theme-toggle" title="Toggle color theme" aria-label="Toggle color theme">🌙</button>
-                    <div class="day-mark" id="day-mark">P</div>
                 </div>
             </header>
 
@@ -1181,9 +1117,6 @@ h1 { font-size: clamp(1.9rem, 3.4vw, 2.65rem); letter-spacing: -.05em; }
                 year: 'numeric'
             });
 
-            document.getElementById('day-mark').textContent =
-                now.toLocaleDateString(undefined, { weekday: 'short' }).slice(0, 2);
-
             const dateStr = now.toISOString().split('T')[0];
             document.getElementById('sleepDate').value = dateStr;
             document.getElementById('screenDate').value = dateStr;
@@ -1205,6 +1138,26 @@ h1 { font-size: clamp(1.9rem, 3.4vw, 2.65rem); letter-spacing: -.05em; }
             localStorage.setItem('dark-mode', isDark);
             themeToggle.textContent = isDark ? '☀️' : '🌙';
         });
+
+            const navLinks = document.querySelectorAll('.nav a');
+
+            function setActiveNavigation(hash = window.location.hash || '#overview') {
+                navLinks.forEach(link => {
+                    const isActive = link.hash === hash;
+                    link.classList.toggle('active', isActive);
+                    if (isActive) {
+                        link.setAttribute('aria-current', 'page');
+                    } else {
+                        link.removeAttribute('aria-current');
+                    }
+                });
+            }
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', () => setActiveNavigation(link.hash));
+            });
+            window.addEventListener('hashchange', () => setActiveNavigation());
+            setActiveNavigation();
 
         function openSleepModal() {
             document.getElementById('sleepModal').classList.add('active');
