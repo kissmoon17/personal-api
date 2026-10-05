@@ -1184,6 +1184,74 @@ h1 { font-size: clamp(1.9rem, 3.4vw, 2.65rem); letter-spacing: -.05em; }
             }, 3000);
         }
 
+        // ---- Admin token for saving data ----
+        // Reading the dashboard is public. Saving needs the admin token, which is
+        // asked for when you save and kept ONLY in this browser tab (sessionStorage,
+        // gone when the tab closes). It is sent only on save (POST) requests,
+        // never on the public GET requests, and is never stored in this file.
+        const ADMIN_TOKEN_KEY = 'personal-api-admin-token';
+
+        function getStoredAdminToken() {
+            try { return sessionStorage.getItem(ADMIN_TOKEN_KEY) || ''; } catch (e) { return ''; }
+        }
+
+        function storeAdminToken(token) {
+            try { sessionStorage.setItem(ADMIN_TOKEN_KEY, token); } catch (e) { /* storage unavailable: just ask again next time */ }
+        }
+
+        function clearAdminToken() {
+            try { sessionStorage.removeItem(ADMIN_TOKEN_KEY); } catch (e) { /* nothing to clear */ }
+        }
+
+        function requestAdminToken() {
+            let token = getStoredAdminToken();
+            if (!token) {
+                const entered = window.prompt('Enter your admin token to save this entry:');
+                token = (entered || '').trim();
+                if (!token) {
+                    const cancelled = new Error('Save cancelled');
+                    cancelled.cancelled = true;
+                    throw cancelled;
+                }
+                if (!/^[\x21-\x7E]+$/.test(token)) {
+                    throw new Error('That token contains characters that are not allowed. Try again.');
+                }
+                storeAdminToken(token);
+            }
+            return token;
+        }
+
+        async function postWithAdminToken(path, payload) {
+            const token = requestAdminToken();
+            const response = await fetch(`${API_URL}${path}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.status === 401 || response.status === 403) {
+                clearAdminToken();
+                throw new Error('The admin token was rejected. Press save again to re-enter it.');
+            }
+            return response;
+        }
+
+        async function readErrorMessage(response, fallback) {
+            try {
+                const data = await response.json();
+                if (data && data.error) {
+                    const details = Array.isArray(data.details) && data.details.length
+                        ? ' (' + data.details.join('; ') + ')'
+                        : '';
+                    return data.error + details;
+                }
+            } catch (e) { /* response was not JSON */ }
+            return fallback;
+        }
+
         async function submitSleep(event) {
             event.preventDefault();
             const date = document.getElementById('sleepDate').value;
@@ -1191,19 +1259,16 @@ h1 { font-size: clamp(1.9rem, 3.4vw, 2.65rem); letter-spacing: -.05em; }
             const quality = 0.5; // Default middle value
 
             try {
-                const response = await fetch(`${API_URL}/api/me/sleep`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ date, hours_slept, quality, source: 'manual' })
-                });
+                const response = await postWithAdminToken('/api/me/sleep', { date, hours_slept, quality, source: 'manual' });
 
-                if (!response.ok) throw new Error('Failed to save sleep data');
+                if (!response.ok) throw new Error(await readErrorMessage(response, 'Failed to save sleep data'));
                 
                 showSuccess('Sleep data saved! 💤');
                 closeSleepModal();
                 document.getElementById('sleepForm').reset();
                 loadDashboard();
             } catch (error) {
+                if (error.cancelled) return;
                 alert('Error: ' + error.message);
             }
         }
@@ -1216,19 +1281,16 @@ h1 { font-size: clamp(1.9rem, 3.4vw, 2.65rem); letter-spacing: -.05em; }
             const total_minutes = work_minutes + entertainment_minutes;
 
             try {
-                const response = await fetch(`${API_URL}/api/me/screen-time`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ date, total_minutes, work_minutes, entertainment_minutes, source: 'manual' })
-                });
+                const response = await postWithAdminToken('/api/me/screen-time', { date, total_minutes, work_minutes, entertainment_minutes, source: 'manual' });
 
-                if (!response.ok) throw new Error('Failed to save screen time data');
+                if (!response.ok) throw new Error(await readErrorMessage(response, 'Failed to save screen time data'));
                 
                 showSuccess('Screen time data saved! 📱');
                 closeScreenModal();
                 document.getElementById('screenForm').reset();
                 loadDashboard();
             } catch (error) {
+                if (error.cancelled) return;
                 alert('Error: ' + error.message);
             }
         }

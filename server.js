@@ -1,78 +1,27 @@
 // This is the main entry point
 // When you run 'node server.js', this file starts
 // Why one file? It's the "master control" that starts everything
+// (The routes and middleware live in app.js so the tests can load them
+// without starting a server or a scheduler.)
 
-const express = require('express');
 require('dotenv').config();
 
-const app = express();
+const { createApp } = require('./app');
+const { startSyncScheduler } = require('./scheduler');
+const { getConfiguredToken, MIN_TOKEN_LENGTH } = require('./middleware/auth');
 
-const cors = require('cors');
-app.use(cors());
+const app = createApp();
 
-app.use(express.static('public'));
+// Fail closed, but keep the public read-only dashboard up.
+if (!getConfiguredToken()) {
+  console.warn(
+    `WARNING: ADMIN_API_TOKEN is missing or shorter than ${MIN_TOKEN_LENGTH} characters. ` +
+    'The dashboard can be viewed, but every write request will be refused.'
+  );
+}
 
-app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/public/index.html');
-});
-// Middleware: parse JSON from requests
-// Why? If someone sends JSON data, we need to read it
-app.use(express.json());
-
-// Import the commits route (we'll create this next)
-const commitsRoute = require('./routes/commits');
-
-// Register the route
-// What does this mean? 
-// When someone calls GET /api/me/commits, 
-// run the code in routes/commits.js
-app.use('/api/me', commitsRoute);
-
-const sleepRoute = require('./routes/sleep');
-app.use('/api/me', sleepRoute);
-
-const screenTimeRoute = require('./routes/screen-time');
-app.use('/api/me', screenTimeRoute);
-
-const dashboardRoute = require('./routes/dashboard');
-app.use('/api/me', dashboardRoute);
-
-const manualDataRoute = require('./routes/manual-data');
-app.post('/api/me/sleep', manualDataRoute.addSleep);
-app.post('/api/me/screen-time', manualDataRoute.addScreenTime);
-
-// Health check endpoint
-// Why? This lets us know the server is running
-app.get('/health', (req, res) => {
-  res.json({ status: 'Server is running' });
-});
-
-// Import the sync job
-const { syncCommits } = require('./sync');
-
-// Run sync immediately when server starts (for testing)
-// Remove this in production
-syncCommits();
-
-// Run sync immediately when server starts
-syncCommits();
-
-// Setup recurring sync every hour
-const cron = require('node-cron');
-cron.schedule('0 * * * *', () => {
-  console.log('Running scheduled commit sync...');
-  syncCommits();
-});
-
-app.get('/api/sync', async (req, res) => {
-  try {
-    const { syncCommits } = require('./sync');
-    await syncCommits();
-    res.json({ success: true, message: 'Sync completed' });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+// The single, server-side commit sync schedule (hourly). No sync on startup.
+startSyncScheduler();
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

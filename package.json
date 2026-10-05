@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js",
+    "test": "node --test tests/api-security.test.js",
+    "test:productivity": "node tests/productivity.test.js",
+    "sync": "node scripts/run-sync.js"
   },
   "keywords": [],
   "author": "",

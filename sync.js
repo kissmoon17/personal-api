@@ -1,9 +1,8 @@
 // This is the sync job
-// It runs on a schedule (every night at 2 AM)
+// It is scheduled in ONE place only: scheduler.js (started by server.js)
 // Pulls commits from GitHub and saves to database
 
 const axios = require('axios');
-const cron = require('node-cron');
 const pool = require('./database');
 require('dotenv').config();
 
@@ -75,23 +74,5 @@ async function syncCommits() {
     console.error('Sync error:', error.message);
   }
 }
-// Schedule the sync job
-// What does this mean?
-// Run syncCommits() every day at 2 AM
-// '0 2 * * *' is cron syntax:
-//   0 = minute 0
-//   2 = hour 2
-//   * = any day
-//   * = any month
-//   * = any weekday
-
-cron.schedule('0 2 * * *', syncCommits);
-
-// For testing, also run every hour so you don't wait
-cron.schedule('0 * * * *', syncCommits);
-
-console.log('✓ Sync job scheduled');
-console.log('  - Every hour (testing)');
-console.log('  - Every day at 2 AM (production)');
 
 module.exports = { syncCommits };
