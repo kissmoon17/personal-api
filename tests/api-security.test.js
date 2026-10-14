@@ -45,8 +45,23 @@ require.cache[dbPath] = { id: dbPath, filename: dbPath, loaded: true, exports: f
 
 const { createApp } = require('../app');
 const { startSyncScheduler, SYNC_SCHEDULE } = require('../scheduler');
+const { createSyncRunner, describeError } = require('../sync-runner');
 const { parseCorsOrigins, DEFAULT_ORIGINS } = require('../middleware/cors');
 const { validateSleepInput, validateScreenTimeInput } = require('../lib/validation');
+
+// ---- fake sync runner (so no test can ever start a real GitHub sync) --------------
+const fakeRunner = {
+  calls: [],
+  result: null,
+  reset() {
+    this.calls = [];
+    this.result = { status: 'done', summary: { repos: 2, fetched: 5, inserted: 3, alreadySaved: 2, failed: 0 }, durationMs: 12 };
+  },
+  async run(trigger) {
+    this.calls.push(trigger);
+    return this.result;
+  }
+};
 
 // ---- helpers ---------------------------------------------------------------
 let server;
@@ -62,7 +77,7 @@ function setEnv(vars) {
 }
 
 async function startServer() {
-  const app = createApp();
+  const app = createApp({ syncRunner: fakeRunner });
   await new Promise((resolve) => { server = app.listen(0, '127.0.0.1', resolve); });
   base = `http://127.0.0.1:${server.address().port}`;
 }
@@ -82,6 +97,7 @@ const goodScreen = { date: '2026-09-20', total_minutes: 300, work_minutes: 200, 
 
 beforeEach(async () => {
   fakeDb.reset();
+  fakeRunner.reset();
   setEnv({ ADMIN_API_TOKEN: TEST_TOKEN, CORS_ORIGINS: undefined });
   await startServer();
 });
@@ -238,25 +254,278 @@ describe('public read routes', () => {
   });
 });
 
-// ---- sync endpoint removed -----------------------------------------------------
+// ---- sync: no public trigger; the button is admin-only --------------------------------
 describe('public sync endpoint removed', () => {
   test('GET /api/sync is gone (404) and triggers nothing', async () => {
     const res = await fetch(base + '/api/sync');
     assert.equal(res.status, 404);
     assert.equal(fakeDb.calls.length, 0);
+    assert.equal(fakeRunner.calls.length, 0);
   });
 
   test('POST /api/sync needs the token, and still does not exist with it', async () => {
     assert.equal((await post('/api/sync', {})).status, 401);
     assert.equal((await post('/api/sync', {}, bearer())).status, 404);
+    assert.equal(fakeRunner.calls.length, 0);
   });
 
-  test('no route in the source tree exposes a sync trigger', () => {
+  test('no GET route can start a sync (including /api/me/sync)', async () => {
+    for (const url of ['/api/me/sync', '/api/sync', '/api/me/sync/run']) {
+      assert.equal((await fetch(base + url)).status, 404, `GET ${url}`);
+    }
+    assert.equal(fakeRunner.calls.length, 0);
+  });
+
+  test('source: no GET route is defined for sync', () => {
     for (const file of ['app.js', 'server.js', ...fs.readdirSync(path.join(ROOT, 'routes')).map((f) => `routes/${f}`)]) {
       const src = fs.readFileSync(path.join(ROOT, file), 'utf8');
+      assert.ok(!/\.get\(\s*['"`][^'"`]*sync/i.test(src), `${file} must not define a GET sync route`);
       assert.ok(!/['"`]\/api\/sync['"`]/.test(src), `${file} must not define /api/sync`);
-      assert.ok(!/require\(['"]\.\.?\/sync['"]\)/.test(src), `${file} must not import sync directly`);
     }
+  });
+});
+
+describe('"Sync now" endpoint: POST /api/me/sync (admin token required)', () => {
+  test('missing token -> 401 and no sync started', async () => {
+    const res = await post('/api/me/sync', {});
+    assert.equal(res.status, 401);
+    assert.equal(fakeRunner.calls.length, 0);
+  });
+
+  test('wrong token / malformed credentials -> 401 and no sync started', async () => {
+    for (const headers of [bearer(OTHER_TOKEN), bearer('short'), { Authorization: `Basic ${TEST_TOKEN}` }, { Authorization: TEST_TOKEN }]) {
+      assert.equal((await post('/api/me/sync', {}, headers)).status, 401);
+    }
+    assert.equal((await post(`/api/me/sync?token=${TEST_TOKEN}`, { token: TEST_TOKEN })).status, 401);
+    assert.equal(fakeRunner.calls.length, 0);
+  });
+
+  test('ADMIN_API_TOKEN missing or too short -> fail closed (503), no sync started', async () => {
+    setEnv({ ADMIN_API_TOKEN: undefined });
+    assert.equal((await post('/api/me/sync', {}, bearer())).status, 503);
+    setEnv({ ADMIN_API_TOKEN: 'short-secret' });
+    assert.equal((await post('/api/me/sync', {}, bearer('short-secret'))).status, 503);
+    assert.equal(fakeRunner.calls.length, 0);
+  });
+
+  test('other methods need the token too, and have no handler even with it', async () => {
+    for (const method of ['PUT', 'PATCH', 'DELETE']) {
+      assert.equal((await fetch(base + '/api/me/sync', { method })).status, 401);
+      assert.equal((await fetch(base + '/api/me/sync', { method, headers: bearer() })).status, 404);
+    }
+    assert.equal(fakeRunner.calls.length, 0);
+  });
+
+  test('valid token -> starts exactly one manual sync and returns only counts', async () => {
+    const res = await post('/api/me/sync', {}, bearer());
+    assert.equal(res.status, 200);
+    assert.deepEqual(fakeRunner.calls, ['manual']);
+    const json = await res.json();
+    assert.deepEqual(json, {
+      success: true,
+      data: { repos: 2, fetched: 5, inserted: 3, already_saved: 2, failed: 0, duration_ms: 12 }
+    });
+  });
+
+  test('a sync that is already running -> 409', async () => {
+    fakeRunner.result = { status: 'busy' };
+    const res = await post('/api/me/sync', {}, bearer());
+    assert.equal(res.status, 409);
+    assert.equal((await res.json()).success, false);
+  });
+
+  test('cooldown -> 429 with Retry-After', async () => {
+    fakeRunner.result = { status: 'cooldown', retryAfterSeconds: 42 };
+    const res = await post('/api/me/sync', {}, bearer());
+    assert.equal(res.status, 429);
+    assert.equal(res.headers.get('retry-after'), '42');
+    const json = await res.json();
+    assert.equal(json.retry_after_seconds, 42);
+    assert.match(json.error, /42 seconds/);
+  });
+
+  test('a failed sync -> generic 502 with no internal details', async () => {
+    fakeRunner.result = { status: 'failed' };
+    const res = await post('/api/me/sync', {}, bearer());
+    assert.equal(res.status, 502);
+    const text = await res.text();
+    assert.match(text, /Sync failed/);
+    assert.ok(!/ECONN|password|github\.com|token/i.test(text));
+  });
+
+  test('a crash inside the runner is hidden behind a generic 500', async () => {
+    const original = console.error;
+    console.error = () => {};
+    try {
+      fakeRunner.run = async () => { throw new Error('secret internal detail postgres://u:p@h'); };
+      const res = await post('/api/me/sync', {}, bearer());
+      assert.equal(res.status, 500);
+      assert.ok(!/secret internal|postgres/.test(await res.text()));
+    } finally {
+      console.error = original;
+      delete fakeRunner.run; // back to the prototype method
+    }
+  });
+});
+
+describe('sync runner (one sync at a time, manual cooldown)', () => {
+  const quiet = { log() {}, error() {} };
+  function clock(start = 1_000_000) {
+    let t = start;
+    return { now: () => t, advance: (ms) => { t += ms; } };
+  }
+
+  test('runs the sync and returns its summary', async () => {
+    const c = clock();
+    const runner = createSyncRunner({ sync: async () => ({ inserted: 4 }), logger: quiet, now: c.now });
+    const result = await runner.run('manual');
+    assert.equal(result.status, 'done');
+    assert.deepEqual(result.summary, { inserted: 4 });
+  });
+
+  test('manual syncs have a 60-second cooldown; it expires', async () => {
+    const c = clock();
+    let calls = 0;
+    const runner = createSyncRunner({ sync: async () => { calls++; return {}; }, logger: quiet, now: c.now });
+    assert.equal((await runner.run('manual')).status, 'done');
+    c.advance(10_000);
+    const second = await runner.run('manual');
+    assert.equal(second.status, 'cooldown');
+    assert.equal(second.retryAfterSeconds, 50);
+    assert.equal(calls, 1, 'cooldown must not start another sync');
+    c.advance(50_000);
+    assert.equal((await runner.run('manual')).status, 'done');
+    assert.equal(calls, 2);
+  });
+
+  test('the hourly (scheduled) run ignores the cooldown', async () => {
+    const c = clock();
+    let calls = 0;
+    const runner = createSyncRunner({ sync: async () => { calls++; return {}; }, logger: quiet, now: c.now });
+    await runner.run('manual');
+    assert.equal((await runner.run('scheduled')).status, 'done');
+    assert.equal(calls, 2);
+  });
+
+  test('never two at once: a manual and a scheduled run see "busy" while one is running', async () => {
+    const c = clock();
+    let release;
+    let calls = 0;
+    const runner = createSyncRunner({
+      sync: () => { calls++; return new Promise((r) => { release = () => r({}); }); },
+      logger: quiet,
+      now: c.now
+    });
+    const first = runner.run('scheduled');
+    assert.equal(runner.isRunning(), true);
+    assert.equal((await runner.run('manual')).status, 'busy');
+    assert.equal((await runner.run('scheduled')).status, 'busy');
+    assert.equal(calls, 1);
+    release();
+    assert.equal((await first).status, 'done');
+    assert.equal(runner.isRunning(), false);
+  });
+
+  test('a failing sync is reported as failed, logged with a real reason, and unlocks the runner', async () => {
+    const c = clock();
+    const errors = [];
+    let fail = true;
+    const runner = createSyncRunner({
+      sync: async () => {
+        if (fail) { const e = new Error(''); e.errors = [{ code: 'ECONNREFUSED' }]; throw e; }
+        return {};
+      },
+      logger: { log() {}, error: (...a) => errors.push(a.join(' ')) },
+      now: c.now
+    });
+    assert.deepEqual(await runner.run('scheduled'), { status: 'failed' });
+    assert.equal(runner.isRunning(), false);
+    assert.ok(errors[0].includes('ECONNREFUSED'), `logged: ${errors[0]}`);
+    fail = false;
+    assert.equal((await runner.run('scheduled')).status, 'done');
+  });
+
+  test('describeError never returns an empty string', () => {
+    assert.equal(describeError(new Error('boom')), 'boom');
+    assert.equal(describeError(Object.assign(new Error(''), { code: 'ENOTFOUND' })), 'ENOTFOUND');
+    assert.equal(describeError(Object.assign(new Error(''), { errors: [{ code: 'ECONNREFUSED' }] })), 'ECONNREFUSED');
+    assert.equal(describeError(null), 'unknown error');
+    assert.equal(describeError(new Error('')), 'unknown error');
+  });
+});
+
+describe('sync job (sync.js) reports honest results', () => {
+  // sync.js is loaded here with a fake GitHub (axios) and the fake database, so nothing
+  // touches the network, a real database, or your .env.
+  const axiosPath = require.resolve('axios');
+  const dotenvPath = require.resolve('dotenv');
+  const syncPath = require.resolve('../sync');
+
+  function loadSync({ axiosGet }) {
+    require.cache[axiosPath] = { id: axiosPath, filename: axiosPath, loaded: true, exports: { get: axiosGet } };
+    require.cache[dotenvPath] = { id: dotenvPath, filename: dotenvPath, loaded: true, exports: { config() {} } };
+    delete require.cache[syncPath];
+    return require('../sync').syncCommits;
+  }
+
+  function githubFake(reposFail = false) {
+    const commit = (sha) => ({ sha, commit: { message: `msg ${sha}`, author: { name: 'Me', date: '2026-09-01T10:00:00Z' } } });
+    return async (url) => {
+      if (url.endsWith('/repos')) {
+        if (reposFail) throw new Error('Request failed with status code 401');
+        return { data: [{ name: 'a' }, { name: 'b' }] };
+      }
+      if (url.includes('/repos/kissmoon17/a/')) return { data: [commit('s1'), commit('s2')] };
+      if (url.includes('/repos/kissmoon17/b/')) return { data: [commit('s3')] };
+      throw new Error('unexpected url ' + url);
+    };
+  }
+
+  async function quietly(fn) {
+    const log = console.log;
+    const err = console.error;
+    const lines = { log: [], error: [] };
+    console.log = (...a) => lines.log.push(a.join(' '));
+    console.error = (...a) => lines.error.push(a.join(' '));
+    try {
+      return { value: await fn(), lines };
+    } finally {
+      console.log = log;
+      console.error = err;
+    }
+  }
+
+  test('counts new vs already-saved commits', async () => {
+    const seen = new Set(['s2']); // s2 is already in the database
+    fakeDb.handler = (sql, params) => {
+      const isNew = !seen.has(params[0]);
+      seen.add(params[0]);
+      return { rows: [], rowCount: isNew ? 1 : 0 };
+    };
+    const syncCommits = loadSync({ axiosGet: githubFake() });
+    const { value } = await quietly(() => syncCommits());
+    assert.deepEqual(value, { repos: 2, fetched: 3, inserted: 2, alreadySaved: 1, failed: 0 });
+  });
+
+  test('database failure: counted as failed, real reason logged ONCE (not blank, not per commit)', async () => {
+    fakeDb.handler = () => {
+      const e = new Error('');
+      e.errors = [{ code: 'ECONNREFUSED' }];
+      throw e;
+    };
+    const syncCommits = loadSync({ axiosGet: githubFake() });
+    const { value, lines } = await quietly(() => syncCommits());
+    assert.equal(value.failed, 3);
+    assert.equal(value.inserted, 0);
+    const insertErrors = lines.error.filter((l) => l.startsWith('Error inserting commit'));
+    assert.equal(insertErrors.length, 1);
+    assert.match(insertErrors[0], /ECONNREFUSED/);
+    assert.ok(lines.log.some((l) => /3 failed to save/.test(l)) && !lines.log.some((l) => /Sync complete/.test(l)));
+  });
+
+  test("GitHub repo list failure: the sync rejects (so the button/schedule can report it)", async () => {
+    const syncCommits = loadSync({ axiosGet: githubFake(true) });
+    await assert.rejects(quietly(() => syncCommits()), /401/);
   });
 });
 
@@ -266,59 +535,47 @@ describe('commit sync scheduling', () => {
     const jobs = [];
     return { jobs, schedule(expr, fn) { jobs.push({ expr, fn }); return { stop() {} }; } };
   }
+  const quiet = { log() {}, error() {} };
 
   test('registers exactly one hourly job and does NOT sync on startup', async () => {
     const cron = fakeCron();
-    let syncCalls = 0;
-    startSyncScheduler({ cronLib: cron, sync: async () => { syncCalls++; }, env: {}, logger: { log() {}, error() {} } });
+    const runner = { calls: [], async run(trigger) { this.calls.push(trigger); return { status: 'done' }; } };
+    startSyncScheduler({ cronLib: cron, runner, env: {}, logger: quiet });
     assert.equal(cron.jobs.length, 1);
     assert.equal(cron.jobs[0].expr, SYNC_SCHEDULE);
     assert.equal(SYNC_SCHEDULE, '0 * * * *');
-    assert.equal(syncCalls, 0, 'no sync at startup');
+    assert.equal(runner.calls.length, 0, 'no sync at startup');
     await cron.jobs[0].fn();
-    assert.equal(syncCalls, 1);
+    assert.deepEqual(runner.calls, ['scheduled']);
   });
 
   test('SYNC_SCHEDULER_ENABLED=false registers nothing', () => {
     for (const value of ['false', 'FALSE', '0', 'off']) {
       const cron = fakeCron();
-      const task = startSyncScheduler({ cronLib: cron, sync: async () => {}, env: { SYNC_SCHEDULER_ENABLED: value }, logger: { log() {}, error() {} } });
+      const task = startSyncScheduler({ cronLib: cron, runner: { run: async () => ({}) }, env: { SYNC_SCHEDULER_ENABLED: value }, logger: quiet });
       assert.equal(task, null);
       assert.equal(cron.jobs.length, 0);
     }
   });
 
-  test('an overlapping run is skipped, and a failing sync does not crash the job', async () => {
+  test('a busy runner just skips the hourly tick', async () => {
     const cron = fakeCron();
-    let release;
-    let calls = 0;
-    const errors = [];
-    startSyncScheduler({
-      cronLib: cron,
-      sync: () => { calls++; return new Promise((r) => { release = r; }); },
-      env: {},
-      logger: { log() {}, error: (...a) => errors.push(a) }
-    });
-    const first = cron.jobs[0].fn();
-    await cron.jobs[0].fn(); // second tick while first is running -> skipped
-    assert.equal(calls, 1);
-    release();
-    await first;
-
-    const cron2 = fakeCron();
-    startSyncScheduler({ cronLib: cron2, sync: async () => { throw new Error('boom'); }, env: {}, logger: { log() {}, error: (...a) => errors.push(a) } });
-    await cron2.jobs[0].fn();
-    assert.equal(errors.length, 1);
+    const logs = [];
+    startSyncScheduler({ cronLib: cron, runner: { run: async () => ({ status: 'busy' }) }, env: {}, logger: { log: (m) => logs.push(m), error() {} } });
+    await cron.jobs[0].fn();
+    assert.ok(logs.some((m) => /skipping/.test(m)));
   });
 
-  test('source: only scheduler.js schedules; sync.js and server.js do not', () => {
+  test('source: only scheduler.js schedules; sync.js and server.js do not; nothing syncs at startup', () => {
     const read = (f) => fs.readFileSync(path.join(ROOT, f), 'utf8');
     assert.ok(!/node-cron|cron\.schedule/.test(read('sync.js')), 'sync.js must not schedule or import node-cron');
     assert.ok(!/node-cron|cron\.schedule/.test(read('server.js')), 'server.js must not schedule directly');
+    assert.ok(!/node-cron|cron\.schedule/.test(read('sync-runner.js')));
     assert.equal((read('scheduler.js').match(/cron\.schedule\(/g) || []).length, 1);
     const server = read('server.js');
     assert.equal((server.match(/startSyncScheduler\(/g) || []).length, 1, 'scheduler started once');
-    assert.ok(!/syncCommits/.test(server), 'no sync call on startup');
+    assert.ok(!/\.run\(|syncCommits\(/.test(server), 'server.js must not start a sync at startup');
+    assert.equal((server.match(/createSyncRunner\(/g) || []).length, 1, 'one shared runner');
   });
 });
 
@@ -557,6 +814,12 @@ describe('dashboard frontend', () => {
     assert.ok(!/localStorage[^\n]*(token|TOKEN)/.test(html), 'token must not be put in localStorage');
     assert.ok(!/ADMIN_TOKEN_KEY[^\n]*localStorage|localStorage[^\n]*ADMIN_TOKEN_KEY/.test(html));
     assert.match(html, /response\.status === 401 \|\| response\.status === 403\) \{\s*clearAdminToken\(\)/);
+  });
+
+  test('the Sync button uses the same token helper and has no other way to call the server', () => {
+    assert.ok(html.includes('id="syncBtn"') && html.includes('onclick="syncNow()"'));
+    assert.ok(html.includes("postWithAdminToken('/api/me/sync'"));
+    assert.ok(!/fetch\([^)]*\/api\/(me\/)?sync/.test(html), 'must not call the sync URL with a bare fetch');
   });
 
   test('both forms save through the token helper', () => {

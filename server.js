@@ -8,9 +8,15 @@ require('dotenv').config();
 
 const { createApp } = require('./app');
 const { startSyncScheduler } = require('./scheduler');
+const { createSyncRunner } = require('./sync-runner');
+const { syncCommits } = require('./sync');
 const { getConfiguredToken, MIN_TOKEN_LENGTH } = require('./middleware/auth');
 
-const app = createApp();
+// ONE runner shared by the hourly schedule and the admin-only "Sync now" button,
+// so the two can never run at the same time.
+const syncRunner = createSyncRunner({ sync: syncCommits });
+
+const app = createApp({ syncRunner });
 
 // Fail closed, but keep the public read-only dashboard up.
 if (!getConfiguredToken()) {
@@ -21,7 +27,8 @@ if (!getConfiguredToken()) {
 }
 
 // The single, server-side commit sync schedule (hourly). No sync on startup.
-startSyncScheduler();
+// (The "Sync now" button is a manual trigger, not a second schedule.)
+startSyncScheduler({ runner: syncRunner });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

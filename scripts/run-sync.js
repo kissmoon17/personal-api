@@ -7,8 +7,7 @@ const { syncCommits } = require('../sync');
 const pool = require('../database');
 
 syncCommits()
-  .then(() => pool.end())
-  .then(() => process.exit(0))
+  .then((summary) => pool.end().then(() => process.exit(summary.failed > 0 ? 1 : 0)))
   .catch((err) => {
     console.error('Sync run failed:', err && err.message);
     process.exit(1);

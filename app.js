@@ -8,7 +8,19 @@ const express = require('express');
 const { corsMiddleware } = require('./middleware/cors');
 const { requireAdminForWrites } = require('./middleware/auth');
 
-function createApp() {
+let defaultRunner = null;
+function getDefaultRunner() {
+  if (!defaultRunner) {
+    const { createSyncRunner } = require('./sync-runner');
+    // Loaded lazily so just importing app.js never loads the GitHub/database code.
+    defaultRunner = createSyncRunner({ sync: () => require('./sync').syncCommits() });
+  }
+  return defaultRunner;
+}
+
+// syncRunner: the shared runner from sync-runner.js (server.js passes the real one;
+// tests pass a fake). If none is given, a real one is created the first time it's needed.
+function createApp({ syncRunner } = {}) {
   const app = express();
 
   // 1. CORS: which *browser* origins may read responses (not authentication!)
@@ -45,6 +57,11 @@ function createApp() {
   const manualDataRoute = require('./routes/manual-data');
   app.post('/api/me/sleep', manualDataRoute.addSleep);
   app.post('/api/me/screen-time', manualDataRoute.addScreenTime);
+
+  // "Sync now" button. Admin token required (same guard as above). POST only: there is
+  // no public/GET way to start a sync.
+  const { createSyncHandler } = require('./routes/sync');
+  app.post('/api/me/sync', createSyncHandler(syncRunner || getDefaultRunner()));
 
   // Health check endpoint
   app.get('/health', (req, res) => {

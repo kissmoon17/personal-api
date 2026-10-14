@@ -953,6 +953,7 @@ h1 { font-size: clamp(1.9rem, 3.4vw, 2.65rem); letter-spacing: -.05em; }
                 <div class="topbar-actions">
                     <button class="btn-add" onclick="openSleepModal()">💤 Sleep</button>
                     <button class="btn-add" onclick="openScreenModal()">📱 Screen</button>
+                    <button class="btn-add" id="syncBtn" onclick="syncNow()" title="Fetch the latest commits from GitHub (needs the admin token)">🔄 Sync</button>
                     <button type="button" class="theme-toggle" id="theme-toggle" title="Toggle color theme" aria-label="Toggle color theme">🌙</button>
                 </div>
             </header>
@@ -1292,6 +1293,43 @@ h1 { font-size: clamp(1.9rem, 3.4vw, 2.65rem); letter-spacing: -.05em; }
             } catch (error) {
                 if (error.cancelled) return;
                 alert('Error: ' + error.message);
+            }
+        }
+
+        // "Sync now": asks the server to fetch the latest commits from GitHub.
+        // Needs the admin token (same prompt as saving sleep/screen time).
+        async function syncNow() {
+            const button = document.getElementById('syncBtn');
+            const label = button.textContent;
+            let started = false;
+
+            try {
+                // Ask for the token BEFORE locking the button, so cancelling the prompt does nothing.
+                requestAdminToken();
+                button.disabled = true;
+                button.textContent = '🔄 Syncing...';
+                started = true;
+
+                const response = await postWithAdminToken('/api/me/sync', {});
+                if (!response.ok) throw new Error(await readErrorMessage(response, 'Sync failed'));
+
+                const { data } = await response.json();
+                if (data.failed > 0) {
+                    alert(`Sync finished, but ${data.failed} commit(s) could not be saved. Check the server logs.`);
+                } else if (data.inserted > 0) {
+                    showSuccess(`Synced! ${data.inserted} new commit${data.inserted === 1 ? '' : 's'} 🔄`);
+                } else {
+                    showSuccess('Already up to date 🔄');
+                }
+                loadDashboard();
+            } catch (error) {
+                if (error.cancelled) return;
+                alert('Error: ' + error.message);
+            } finally {
+                if (started) {
+                    button.disabled = false;
+                    button.textContent = label;
+                }
             }
         }
 
